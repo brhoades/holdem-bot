@@ -5,4 +5,4 @@ class Table(CardHandler):
     Table class
     '''
     def __init__(self):
-        pass
+        super(Table, self).__init__()

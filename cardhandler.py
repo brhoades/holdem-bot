@@ -1,8 +1,8 @@
 from deuces.deuces import Card
 
-class CardHandler:
+class CardHandler(object):
     def __init__(self):
-        self.hand = None
+        self.hand = []
 
     def setHand(self, hand):
         self.hand = hand
