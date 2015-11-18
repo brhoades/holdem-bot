@@ -8,6 +8,8 @@
 from sys import stderr, stdin, stdout
 from poker import Card, Hand, Pocket, Table, Ranker
 from itertools import combinations
+import logging
+import logging.handlers
 
 class Bot(object):
     '''
@@ -28,6 +30,17 @@ class Bot(object):
             'opponent': {}
         }
         self.ranker = Ranker()
+
+        LOG_FILENAME = 'logging_rotatingfile_example.out'
+
+        # Set up a specific logger with our desired output level
+        self.log = logging.getLogger('MyLogger')
+        self.log.setLevel(logging.DEBUG)
+
+        # Add the log message handler to the logger
+        self.handler = logging.handlers.RotatingFileHandler(
+                      LOG_FILENAME, backupCount=5)
+        self.log.addHandler(self.handler)
 
     def run(self):
         '''
@@ -52,35 +65,49 @@ class Bot(object):
 
                 parts = line.split()
                 command = parts[0].lower()
+                self.log.debug('INCOMING:\t %s' % (line))
+                self.log.debug('COMMAND:\t %s' % (command))
 
                 if command == 'settings':
                     self.update_settings(parts[1:])
+                    self.log.debug('SETTINGS RECIEVED')
                     pass
                 elif command == 'match':
                     self.update_match_info(parts[1:])
+                    self.log.debug('MATCH RECEIVED')
                     pass
                 elif command.startswith('player'):
                     self.update_game_state(parts[0], parts[1], parts[2])
+                    self.log.debug('PLAYER RECIEVED')
                     pass
                 elif command == 'action':
                     if 'table' not in self.match_settings:
-                        stdout.write(self.preflop(parts[2]) + '\n')
+                        back = self.preflop(parts[2]) + '\n'
+                        stdout.write(back)
+                        self.log.debug('OUT: ' + back)
                         stdout.flush()
                         pass
                     elif len(self.match_settings['table']) == 10:
-                        stdout.write(self.flop(parts[2]) + '\n')
+                        back = self.flop(parts[2]) + '\n'
+                        stdout.write(back)
+                        self.log.debug('OUT: ' + back + '\n')
                         stdout.flush()
                         pass
                     elif len(self.match_settings['table']) == 13:
-                        stdout.write(self.turn(parts[2]) + '\n')
+                        back = self.turn(parts[2]) + '\n'
+                        stdout.write(back)
+                        self.log.debug('OUT: ' + back)
                         stdout.flush()
                         pass
                     elif len(self.match_settings['table']) == 16:
-                        stdout.write(self.river(parts[2]) + '\n')
+                        back = self.river(parts[2]) 
+                        stdout.write(back + '\n')
+                        self.log.debug('OUT: ' + back + '\n')
                         stdout.flush()
                         pass
                 else:
                     stderr.write('Unknown command: %s\n' % (command))
+                    self.log.debug('ERR: Unknown command: %s\n' % (command))
                     stderr.flush()
             except EOFError:
                 return
@@ -154,23 +181,23 @@ class Bot(object):
 
         #pocket pair
         if card1.number == card2.number:
-            return 'raise ' + str(int(self.match_settings['max_win_pot']))
+            return 'raise ' + str(int(self.match_settings['maxWinPot']))
         
         #both face cards
         elif card1.number > 8 and card2.number > 8:
-            return 'raise ' + str(int(self.match_settings['max_win_pot']))
+            return 'raise ' + str(int(self.match_settings['maxWinPot']))
         
         #suited connectors
         elif card1.suit == card2.suit and abs(card1.number - card2.number) == 1:
-            return 'raise ' + str(int(self.match_settings['max_win_pot']))
+            return 'raise ' + str(int(self.match_settings['maxWinPot']))
 
         #suited ace
         elif card1.suit == card2.suit and (card1.number == 12 or card2.number == 12):
-            return 'raise ' + str(int(self.match_settings['max_win_pot']))
+            return 'raise ' + str(int(self.match_settings['maxWinPot']))
 
-        elif int(self.match_settings['amount_to_call']) == 0:
+        elif int(self.match_settings['amountToCall']) == 0:
             return 'check 0'
-        elif int(self.match_settings['amount_to_call']) < int(self.match_settings['big_blind']):
+        elif int(self.match_settings['amountToCall']) < int(self.match_settings['bigBlind']):
             return 'call 0'
         else:
             return 'fold 0'
@@ -190,7 +217,7 @@ class Bot(object):
         #made hand
         if int(ranking[0]) > 1:
             #already have 2pair or better, bet the pot
-            return 'raise ' + str(int(self.match_settings['max_win_pot']))
+            return 'raise ' + str(int(self.match_settings['maxWinPot']))
 
         #flush draw
         flush_draw = False
@@ -201,7 +228,7 @@ class Bot(object):
             if suits.count(card.suit) > 3:
                 flush_draw = True
         if flush_draw:
-            return 'raise ' + str(int(self.match_settings['max_win_pot']) / 2)
+            return 'raise ' + str(int(self.match_settings['maxWinPot']) / 2)
 
         #straight draw
         values = sorted(['23456789TJQKA'.find(card.value) for card in available_cards])
@@ -214,14 +241,14 @@ class Bot(object):
         if not straight_draw:
             straight_draw = all(values[i+1] == values[1] + i for i in range(4))
         if straight_draw:
-            return 'raise ' + str(int(self.match_settings['max_win_pot']) / 2)
+            return 'raise ' + str(int(self.match_settings['maxWinPot']) / 2)
 
         #pair or ace high
         if int(ranking[0]) == 1 or values[4] == 12:
-            if int(self.match_settings['amount_to_call']) < (3 * int(self.match_settings['big_blind'])) and int(self.match_settings['amount_to_call']) > 0:
+            if int(self.match_settings['amountToCall']) < (3 * int(self.match_settings['bigBlind'])) and int(self.match_settings['amountToCall']) > 0:
                 return 'call 0'
 
-        if int(self.match_settings['amount_to_call']) == 0:
+        if int(self.match_settings['amountToCall']) == 0:
             return 'check 0'
         else:
             return 'fold 0'
@@ -249,7 +276,7 @@ class Bot(object):
         #made hand
         if int(ranking[0]) > 1:
             #already have 2pair or better, bet the pot
-            return 'raise ' + str(int(self.match_settings['max_win_pot']))
+            return 'raise ' + str(int(self.match_settings['maxWinPot']))
 
         #flush draw
         flush_draw = False
@@ -280,10 +307,10 @@ class Bot(object):
 
         #pair or ace high
         if int(ranking[0]) == 1 or values[4] == 12:
-            if int(self.match_settings['amount_to_call']) < (3 * int(self.match_settings['big_blind'])) and int(self.match_settings['amount_to_call']) > 0:
+            if int(self.match_settings['amountToCall']) < (3 * int(self.match_settings['bigBlind'])) and int(self.match_settings['amountToCall']) > 0:
                 return 'call 0'
 
-        if int(self.match_settings['amount_to_call']) == 0:
+        if int(self.match_settings['amountToCall']) == 0:
             return 'check 0'
         else:
             return 'fold 0'
@@ -314,8 +341,8 @@ class Bot(object):
         #made hand
         if int(ranking[0]) > 1:
             #already have 2pair or better, bet the pot
-            return 'raise ' + str(int(self.match_settings['max_win_pot']))
-        elif int(self.match_settings['amount_to_call']) == 0:
+            return 'raise ' + str(int(self.match_settings['maxWinPot']))
+        elif int(self.match_settings['amountToCall']) == 0:
             return 'check 0'
         else:
             return 'fold 0'
@@ -331,4 +358,8 @@ if __name__ == '__main__':
     '''
     Not used as module, so run
     '''
-    Bot().run()
+    b = Bot()
+    try:
+        b.run()
+    except Exception:
+        b.log.exception('ERROR')
