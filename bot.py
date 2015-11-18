@@ -11,6 +11,7 @@ from table import Table
 import logging
 import logging.handlers
 from deuces.deuces import Card, Evaluator
+import random
 
 class Bot(object):
     '''
@@ -30,7 +31,9 @@ class Bot(object):
         self.table = Table()
         self.ev = Evaluator()
 
-        LOG_FILENAME = 'logging_rotatingfile_example.out'
+        self.id = random.getrandbits(4)
+
+        LOG_FILENAME = 'logging%i.out' % self.id
 
         # Set up a specific logger with our desired output level
         self.log = logging.getLogger('MyLogger')
@@ -43,8 +46,13 @@ class Bot(object):
 
 
 
-        ###
-        self._betThreshold = 160
+        ### These should be read from a configfile
+        #
+        # Percent of earnings to bet relative to confidence
+        self._preflopBetRatio = 0.05
+        self._flopBetRatio    = 0.15
+        self._turnBetRatio    = 0.10
+        self._riverBetratio   = 0.10
 
     def run(self):
         '''
@@ -70,7 +78,6 @@ class Bot(object):
                 parts = line.split()
                 command = parts[0].lower()
                 self.log.debug('INCOMING:\t %s' % (line))
-                self.log.debug('COMMAND:\t %s' % (command))
 
                 if command == 'settings':
                     self.update_settings(parts[1:])
@@ -78,7 +85,7 @@ class Bot(object):
                     pass
                 elif command == 'match':
                     if parts[1] == 'table':
-                        self.table.setHand(parts[2])
+                        self.table.parseHand(parts[2])
                     else:
                         self.update_match_info(parts[1:])
                     self.log.debug('MATCH RECEIVED')
@@ -88,25 +95,32 @@ class Bot(object):
                     self.log.debug('PLAYER RECIEVED')
                     pass
                 elif command == 'action':
-                    if 'table' not in self.match_settings:
+                    totalsize = len(self.table.hand) + len(self.other_player.hand) \
+                            + len(self.player.hand)
+                    self.log.debug("ACTION: totalsize={0}".format(totalsize))
+                    if totalsize == 2: 
+                        self.log.debug("PREFLOP")
                         back = self.preflop(parts[2]) + '\n'
                         stdout.write(back)
                         self.log.debug('OUT: ' + back)
                         stdout.flush()
                         pass
-                    elif len(self.match_settings['table']) == 10:
+                    elif totalsize == 5:
+                        self.log.debug("FLOP")
                         back = self.flop(parts[2]) + '\n'
                         stdout.write(back)
                         self.log.debug('OUT: ' + back + '\n')
                         stdout.flush()
                         pass
-                    elif len(self.match_settings['table']) == 13:
+                    elif totalsize == 13:
+                        self.log.debug("TURN")
                         back = self.turn(parts[2]) + '\n'
                         stdout.write(back)
                         self.log.debug('OUT: ' + back)
                         stdout.flush()
                         pass
-                    elif len(self.match_settings['table']) == 16:
+                    elif totalsize == 16:
+                        self.log.debug("RIVER")
                         back = self.river(parts[2]) 
                         stdout.write(back + '\n')
                         self.log.debug('OUT: ' + back + '\n')
@@ -131,6 +145,9 @@ class Bot(object):
         Updates match information
         '''
         key, value = options
+
+        if key == 'maxWinPot':
+            value = int(value)
         self.match_settings[key] = value
 
     def update_game_state(self, player, info_type, info_value):
@@ -139,6 +156,8 @@ class Bot(object):
         '''
         # Checks if info pertains self
         if player == self.settings['your_bot']:
+            self.log.debug("  ME: " + player)
+            self.log.debug("  INFOTYPE: " + info_type)
             # Update bot stack
             if info_type == 'stack':
                 self.player.stack = int(info_value)
@@ -158,8 +177,11 @@ class Bot(object):
 
             else:
                 stderr.write('Unknown info_type: %s\n' % (info_type))
+                self.log.debug('Unknown info_type: %s\n' % (info_type))
 
         else:
+            self.log.debug("  THEM: " + player)
+            self.log.debug("  INFOTYPE: " + info_type)
 
             # Update opponent stack
             if info_type == 'stack':
@@ -171,12 +193,17 @@ class Bot(object):
 
             # Opponent hand on showdown, currently unused
             elif info_type == 'hand':
+                self.log.debug("SET HAND")
                 self.other_player.parseHand(info_value)
 
             # Opponent round winnings, currently unused
             elif info_type == 'wins':
                 if 'table' in self.match_settings:
                     del self.match_settings['table']
+            else:
+                stderr.write('Unknown info_type: %s\n' % (info_type))
+                self.log.debug('Unknown info_type: %s\n' % (info_type))
+
 
     def preflop(self, timeout):
         '''
@@ -185,21 +212,24 @@ class Bot(object):
         self.log.debug(self.player.hand)
         card1 = self.player.hand[0]
         card2 = self.player.hand[1]
+
+        raiseAmount = 0
+
         #pocket pair
         if card1.number == card2.number:
-            return 'raise ' + str(int(self.match_settings['maxWinPot']))
+            raiseAmount = self.match_settings['maxWinPot']*self._preflopBetRatio
         
         #both face cards
         elif card1.number > 8 and card2.number > 8:
-            return 'raise ' + str(int(self.match_settings['maxWinPot']))
+            raiseAmount = self.match_settings['maxWinPot']*self._preflopBetRatio
         
         #suited connectors
         elif card1.suit == card2.suit and abs(card1.number - card2.number) == 1:
-            return 'raise ' + str(int(self.match_settings['maxWinPot']))
+            raiseAmount = self.match_settings['maxWinPot']*self._preflopBetRatio
 
         #suited ace
         elif card1.suit == card2.suit and (card1.number == 12 or card2.number == 12):
-            return 'raise ' + str(int(self.match_settings['maxWinPot']))
+            raiseAmount = self.match_settings['maxWinPot']*self._preflopBetRatio
 
         elif int(self.match_settings['amountToCall']) == 0:
             return 'check 0'
@@ -208,18 +238,23 @@ class Bot(object):
         else:
             return 'fold 0'
 
+        return 'raise {0}'.format(raiseAmount)
+
+
     def flop(self, timeout):
         '''
         Once the flop is out, action is to us
         '''
-        s = self.ev.evaluate(self.table.hand, self.player.hand)
-        self.log.debug("EVAL: " + s)
-        #ranking = self.ranker.rank_five_cards(available_cards)
+        self.log.debug('  Table: ' + self.table.getHumanHand())
+        self.log.debug('  Us: ' + self.player.getHumanHand())
+        self.log.debug('  them: ' + self.other_player.getHumanHand())
+        score = self.ev.evaluate(self.table.getHand(), self.player.getHand())
+        self.log.debug('  SCORE: ' + str(score))
 
         #made hand
         if int(ranking[0]) > 1:
             #already have 2pair or better, bet the pot
-            return 'raise ' + str(int(self.match_settings['maxWinPot']))
+            return 'raise {0}'.format(self.match_settings['maxWinPot'])
 
         #flush draw
         flush_draw = False
@@ -318,6 +353,8 @@ class Bot(object):
         Once the flop is out, action is to us
         '''
         
+        self.log.debug("RIVER")
+        self.log.debug(self.table.hand)
         s = self.ev.evaluate(self.table.hand, self.player.hand)
         self.log.debug("EVAL: " + s)
 
@@ -329,14 +366,6 @@ class Bot(object):
         #    return 'check 0'
         #else:
         return 'fold 0'
-
-
-    def parse_cards(self, cards_string):
-        '''
-        Parses string of cards and returns a list of Card objects
-        '''
-        #FIXME: Let's move this somewhere sensible
-        return [Card.new(card) for card in cards_string[1:-1].split(',')]
 
 if __name__ == '__main__':
     '''
