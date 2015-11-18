@@ -1,4 +1,4 @@
-from deuces.deuces import Card
+from card import Card
 
 class CardHandler(object):
     def __init__(self):
@@ -14,4 +14,4 @@ class CardHandler(object):
         '''
         Parses string of cards and returns a list of Card objects
         '''
-        return [Card.new(card) for card in cards_string[1:-1].split(',')]
+        return [Card(card) for card in cards_string[1:-1].split(',')]

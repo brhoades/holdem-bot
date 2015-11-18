@@ -139,7 +139,6 @@ class Bot(object):
         '''
         # Checks if info pertains self
         if player == self.settings['your_bot']:
-            
             # Update bot stack
             if info_type == 'stack':
                 self.player.stack = int(info_value)
@@ -183,10 +182,9 @@ class Bot(object):
         '''
         Handle preflop hand possibilities
         '''
-        self.log.debug(vars(self.table))
-        s = self.ev.evaluate(self.table.hand, self.player.hand)
-        self.log.debug("EVAL: " + s)
-        return 'call 0'
+        self.log.debug(self.player.hand)
+        card1 = self.player.hand[0]
+        card2 = self.player.hand[1]
         #pocket pair
         if card1.number == card2.number:
             return 'raise ' + str(int(self.match_settings['maxWinPot']))
