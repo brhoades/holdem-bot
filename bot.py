@@ -6,10 +6,10 @@
 # @license MIT License (http://opensource.org/licenses/MIT)
 
 from sys import stderr, stdin, stdout
-from poker import Card, Hand, Pocket, Table, Ranker
-from itertools import combinations
+from poker import Hand, Pocket, Table, Ranker
 import logging
 import logging.handlers
+from deuces.deuces import Card, Evaluator
 
 class Bot(object):
     '''
@@ -41,6 +41,11 @@ class Bot(object):
         self.handler = logging.handlers.RotatingFileHandler(
                       LOG_FILENAME, backupCount=5)
         self.log.addHandler(self.handler)
+
+
+
+        ###
+        self._betThreshold = 160
 
     def run(self):
         '''
@@ -179,6 +184,7 @@ class Bot(object):
         card1 = self.bots['me']['pocket'].cards[0]
         card2 = self.bots['me']['pocket'].cards[1]
 
+        return 'call 0'
         #pocket pair
         if card1.number == card2.number:
             return 'raise ' + str(int(self.match_settings['maxWinPot']))
@@ -212,7 +218,9 @@ class Bot(object):
         available_cards = self.parse_cards(str(self.match_settings['table']))
         available_cards.append(card1)
         available_cards.append(card2)
-        ranking = self.ranker.rank_five_cards(available_cards)
+        evaluator = Evaluator()
+        self.log.debug("EVAL: " + evaluator.evaluate(available_cards, self.bots['me']['pocket'].cards))
+        #ranking = self.ranker.rank_five_cards(available_cards)
 
         #made hand
         if int(ranking[0]) > 1:
@@ -322,37 +330,27 @@ class Bot(object):
         card1 = self.bots['me']['pocket'].cards[0]
         card2 = self.bots['me']['pocket'].cards[1]
 
-        #made hand
-        card1 = self.bots['me']['pocket'].cards[0]
-        card2 = self.bots['me']['pocket'].cards[1]
-
         available_cards = self.parse_cards(str(self.match_settings['table']))
-        available_cards.append(card1)
-        available_cards.append(card2)
-        ranking = None
-        for five_cards in combinations(available_cards, 5):
-            if not ranking:
-                ranking = self.ranker.rank_five_cards(available_cards)
-            else:
-                temp_ranking = self.ranker.rank_five_cards(available_cards)
-                if int(temp_ranking[0]) > int(ranking[0]):
-                    ranking = temp_ranking
+        
+        evaluator = Evaluator()
+        self.log.debug("EVAL: " + evaluator(available_cards, hand))
+
 
         #made hand
-        if int(ranking[0]) > 1:
-            #already have 2pair or better, bet the pot
-            return 'raise ' + str(int(self.match_settings['maxWinPot']))
-        elif int(self.match_settings['amountToCall']) == 0:
-            return 'check 0'
-        else:
-            return 'fold 0'
+        #if int(ranking[0]) > 1:
+        #    #already have 2pair or better, bet the pot
+        #    return 'raise ' + str(int(self.match_settings['maxWinPot']))
+        #elif int(self.match_settings['amountToCall']) == 0:
+        #    return 'check 0'
+        #else:
+        return 'fold 0'
 
 
     def parse_cards(self, cards_string):
         '''
         Parses string of cards and returns a list of Card objects
         '''
-        return [Card(card[1], card[0]) for card in cards_string[1:-1].split(',')]
+        return [Card.new(card) for card in cards_string[1:-1].split(',')]
 
 if __name__ == '__main__':
     '''

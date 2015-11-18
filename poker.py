@@ -5,15 +5,6 @@
 # @version 1.0 
 # @license MIT License (http://opensource.org/licenses/MIT)
 
-class Card(object):
-    '''
-    Card class
-    '''
-    def __init__(self, suit, value):
-        self.suit = suit
-        self.value = value
-        self.number = '23456789TJQKA'.find(value)
-
 class Pocket(object):
     '''
     Pocket class
