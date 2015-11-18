@@ -15,36 +15,6 @@ class Pocket(object):
     def __iter__(self):
         return iter(self.cards)
 
-class Table(object):
-    '''
-    Table class
-    '''
-    def __init__(self, cards):
-        self.cards = cards
-
-class Hand(object):
-    '''
-    Hand class
-    '''
-    def __init__(self, cards):
-        self.cards = cards
-        self.rank = Ranker.rank_five_cards(cards)
-
-    def __gt__(self, hand):
-        return self.rank > hand.rank
-
-    def __ge__(self, hand):
-        return self.rank >= hand.rank
-
-    def __lt__(self, hand):
-        return self.rank < hand.rank
-
-    def __le__(self, hand):
-        return self.rank <= hand.rank
-
-    def __eq__(self, hand):
-        return self.rank == hand.rank
-
 class Ranker(object):
     '''
     Ranker class

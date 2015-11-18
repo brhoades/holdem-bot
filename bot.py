@@ -6,7 +6,8 @@
 # @license MIT License (http://opensource.org/licenses/MIT)
 
 from sys import stderr, stdin, stdout
-from poker import Hand, Pocket, Table, Ranker
+from player import Player
+from table import Table
 import logging
 import logging.handlers
 from deuces.deuces import Card, Evaluator
@@ -24,12 +25,10 @@ class Bot(object):
         self.settings = {}
         self.match_settings = {}
         self.game_state = {}
-        self.pocket = None
-        self.bots = {
-            'me': {},
-            'opponent': {}
-        }
-        self.ranker = Ranker()
+        self.player = Player()
+        self.other_player = Player()
+        self.table = Table()
+        self.ev = Evaluator()
 
         LOG_FILENAME = 'logging_rotatingfile_example.out'
 
@@ -78,7 +77,10 @@ class Bot(object):
                     self.log.debug('SETTINGS RECIEVED')
                     pass
                 elif command == 'match':
-                    self.update_match_info(parts[1:])
+                    if parts[1] == 'table':
+                        self.table.setHand(parts[2])
+                    else:
+                        self.update_match_info(parts[1:])
                     self.log.debug('MATCH RECEIVED')
                     pass
                 elif command.startswith('player'):
@@ -140,15 +142,15 @@ class Bot(object):
             
             # Update bot stack
             if info_type == 'stack':
-                self.bots['me']['stack'] = int(info_value)
+                self.player.stack = int(info_value)
 
             # Remove blind from stack
             elif info_type == 'post':
-                self.bots['me']['stack'] -= int(info_value)
+                self.player.stack-= int(info_value)
 
             # Update bot cards
             elif info_type == 'hand':
-                self.bots['me']['pocket'] = Pocket(self.parse_cards(info_value))
+                self.player.parseHand(info_value)
 
             # Round winnings, currently unused
             elif info_type == 'wins':
@@ -162,15 +164,15 @@ class Bot(object):
 
             # Update opponent stack
             if info_type == 'stack':
-                self.bots['opponent']['stack'] = int(info_value)
+                self.other_player.stack = int(info_value)
 
             # Remove blind from opponent stack
             elif info_type == 'post':
-                self.bots['opponent']['stack'] -= int(info_value)
+                self.other_player.stack -= int(info_value)
 
             # Opponent hand on showdown, currently unused
             elif info_type == 'hand':
-                pass
+                self.other_player.parseHand(info_value)
 
             # Opponent round winnings, currently unused
             elif info_type == 'wins':
@@ -181,9 +183,9 @@ class Bot(object):
         '''
         Handle preflop hand possibilities
         '''
-        card1 = self.bots['me']['pocket'].cards[0]
-        card2 = self.bots['me']['pocket'].cards[1]
-
+        self.log.debug(vars(self.table))
+        s = self.ev.evaluate(self.table.hand, self.player.hand)
+        self.log.debug("EVAL: " + s)
         return 'call 0'
         #pocket pair
         if card1.number == card2.number:
@@ -212,14 +214,8 @@ class Bot(object):
         '''
         Once the flop is out, action is to us
         '''
-        card1 = self.bots['me']['pocket'].cards[0]
-        card2 = self.bots['me']['pocket'].cards[1]
-
-        available_cards = self.parse_cards(str(self.match_settings['table']))
-        available_cards.append(card1)
-        available_cards.append(card2)
-        evaluator = Evaluator()
-        self.log.debug("EVAL: " + evaluator.evaluate(available_cards, self.bots['me']['pocket'].cards))
+        s = self.ev.evaluate(self.table.hand, self.player.hand)
+        self.log.debug("EVAL: " + s)
         #ranking = self.ranker.rank_five_cards(available_cards)
 
         #made hand
@@ -266,13 +262,9 @@ class Bot(object):
         '''
         Once the turn is out, action is to us
         '''
-        card1 = self.bots['me']['pocket'].cards[0]
-        card2 = self.bots['me']['pocket'].cards[1]
-
-        available_cards = self.parse_cards(str(self.match_settings['table']))
-        available_cards.append(card1)
-        available_cards.append(card2)
-        ranking = None
+        s = self.ev.evaluate(self.table.hand, self.player.hand)
+        self.log.debug("EVAL: " + s)
+        return 'call 0'
         for five_cards in combinations(available_cards, 5):
             if not ranking:
                 ranking = self.ranker.rank_five_cards(available_cards)
@@ -327,14 +319,9 @@ class Bot(object):
         '''
         Once the flop is out, action is to us
         '''
-        card1 = self.bots['me']['pocket'].cards[0]
-        card2 = self.bots['me']['pocket'].cards[1]
-
-        available_cards = self.parse_cards(str(self.match_settings['table']))
         
-        evaluator = Evaluator()
-        self.log.debug("EVAL: " + evaluator(available_cards, hand))
-
+        s = self.ev.evaluate(self.table.hand, self.player.hand)
+        self.log.debug("EVAL: " + s)
 
         #made hand
         #if int(ranking[0]) > 1:
@@ -350,6 +337,7 @@ class Bot(object):
         '''
         Parses string of cards and returns a list of Card objects
         '''
+        #FIXME: Let's move this somewhere sensible
         return [Card.new(card) for card in cards_string[1:-1].split(',')]
 
 if __name__ == '__main__':
