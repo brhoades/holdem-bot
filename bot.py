@@ -275,45 +275,6 @@ class Bot(object):
                 betAmount = self.match_settings['maxWinPot']
 
             return 'raise {0}'.format(betAmount)
-        return
-        #made hand
-        if int(ranking[0]) > 1:
-            #already have 2pair or better, bet the pot
-            return 'raise {0}'.format(self.match_settings['maxWinPot'])
-        return
-        #flush draw
-        flush_draw = False
-        suits = ""
-        for card in available_cards:
-            suits += card.suit
-        for card in available_cards:
-            if suits.count(card.suit) > 3:
-                flush_draw = True
-        if flush_draw:
-            return 'raise ' + str(int(self.match_settings['maxWinPot']) / 2)
-
-        #straight draw
-        values = sorted(['23456789TJQKA'.find(card.value) for card in available_cards])
-        #check cards 0-3
-        straight_draw = all(values[i] == values[0] + i for i in range(4))
-        #check if we have A-4
-        if not straight_draw:
-            straight_draw = all(values[i] == values[0] + i for i in range(3)) and values[4] == 12
-        #check cards 1-4
-        if not straight_draw:
-            straight_draw = all(values[i+1] == values[1] + i for i in range(4))
-        if straight_draw:
-            return 'raise ' + str(int(self.match_settings['maxWinPot']) / 2)
-
-        #pair or ace high
-        if int(ranking[0]) == 1 or values[4] == 12:
-            if int(self.match_settings['amountToCall']) < (3 * int(self.match_settings['bigBlind'])) and int(self.match_settings['amountToCall']) > 0:
-                return 'call 0'
-
-        if int(self.match_settings['amountToCall']) == 0:
-            return 'check 0'
-        else:
-            return 'fold 0'
 
 
     def turn(self, timeout):
@@ -323,55 +284,6 @@ class Bot(object):
         s = self.ev.evaluate(self.table.hand, self.player.hand)
         self.log.debug("EVAL: " + s)
         return 'call 0'
-        for five_cards in combinations(available_cards, 5):
-            if not ranking:
-                ranking = self.ranker.rank_five_cards(available_cards)
-            else:
-                temp_ranking = self.ranker.rank_five_cards(available_cards)
-                if int(temp_ranking[0]) > int(ranking[0]):
-                    ranking = temp_ranking
-
-        #made hand
-        if int(ranking[0]) > 1:
-            #already have 2pair or better, bet the pot
-            return 'raise ' + str(int(self.match_settings['maxWinPot']))
-
-        #flush draw
-        flush_draw = False
-        suits = ""
-        for card in available_cards:
-            suits += card.suit
-        for card in available_cards:
-            if suits.count(card.suit) > 3:
-                flush_draw = True
-        if flush_draw:
-            return 'call 0'
-
-        #straight draw
-        values = sorted(['23456789TJQKA'.find(card.value) for card in available_cards])
-        #check cards 0-3
-        straight_draw = all(values[i] == values[0] + i for i in range(4))
-        #check if we have A-4
-        if not straight_draw:
-            straight_draw = all(values[i] == values[0] + i for i in range(3)) and values[4] == 12
-        #check cards 1-4
-        if not straight_draw:
-            straight_draw = all(values[i+1] == values[1] + i for i in range(4))
-        #check cards 2-5
-        if not straight_draw:
-            straight_draw = all(values[i+2] == values[2] + i for i in range(4))
-        if straight_draw:
-            return 'call 0'
-
-        #pair or ace high
-        if int(ranking[0]) == 1 or values[4] == 12:
-            if int(self.match_settings['amountToCall']) < (3 * int(self.match_settings['bigBlind'])) and int(self.match_settings['amountToCall']) > 0:
-                return 'call 0'
-
-        if int(self.match_settings['amountToCall']) == 0:
-            return 'check 0'
-        else:
-            return 'fold 0'
 
     def river(self, timeout):
         '''
@@ -383,13 +295,6 @@ class Bot(object):
         s = self.ev.evaluate(self.table.hand, self.player.hand)
         self.log.debug("EVAL: " + s)
 
-        #made hand
-        #if int(ranking[0]) > 1:
-        #    #already have 2pair or better, bet the pot
-        #    return 'raise ' + str(int(self.match_settings['maxWinPot']))
-        #elif int(self.match_settings['amountToCall']) == 0:
-        #    return 'check 0'
-        #else:
         return 'fold 0'
 
 if __name__ == '__main__':
