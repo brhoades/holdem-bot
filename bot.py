@@ -11,13 +11,14 @@ from table import Table
 import logging
 import logging.handlers
 from deuces.deuces import Card, Evaluator
-import random
+import argparse
+import json
 
 class Bot(object):
     '''
     Main bot class
     '''
-    def __init__(self):
+    def __init__(self, args):
         '''
         Bot constructor
 
@@ -31,9 +32,11 @@ class Bot(object):
         self.table = Table()
         self.ev = Evaluator()
 
-        self.id = random.getrandbits(4)
+        self.raisePerStage = {"pre_flop": 0, "flop": 0, "turn": 0, "river": 0}
 
-        LOG_FILENAME = 'logging%i.out' % self.id
+        self.config =  json.load(args.config)
+
+        LOG_FILENAME = self.config["logfile"]
 
         # Set up a specific logger with our desired output level
         self.log = logging.getLogger('MyLogger')
@@ -43,29 +46,6 @@ class Bot(object):
         self.handler = logging.handlers.RotatingFileHandler(
                       LOG_FILENAME, backupCount=5)
         self.log.addHandler(self.handler)
-
-
-
-        ### These should be read from a configfile
-        #
-        # Percent of earnings to bet relative to confidence
-        self._preflopBetRatio = 0.05
-        self._turnBetRatio    = 0.10
-        self._riverBetratio   = 0.10
-
-        # stage amounts
-        # score for hands is returned 1-7,462
-        # 1 is a royal flush, 7462 is a shitty-ass hand
-        # When do we fold?
-        self._preFlopFoldThreshold = 7000
-        self._flopFoldThreshold    = 6500
-        self._turnFoldThreshold    = 6000
-        # should be relative?
-        #self._riverFoldThreshold   = 5000
-
-
-        self._flopRaiseThreshold   = 4500 
-        self._flopBetMulti         = 0.15
 
     def run(self):
         '''
@@ -108,40 +88,27 @@ class Bot(object):
                     self.log.debug('PLAYER RECIEVED')
                     pass
                 elif command == 'action':
-                    totalsize = len(self.table.hand) + len(self.other_player.hand) \
-                            + len(self.player.hand)
+                    totalsize = len(self.table.hand) + len(self.player.hand)
                     self.log.debug("ACTION: totalsize={0}".format(totalsize))
                     self.log.debug('  Table: ' + self.table.getHumanHand())
                     self.log.debug('  Us: ' + self.player.getHumanHand())
                     self.log.debug('  them: ' + self.other_player.getHumanHand())
+
+                    back = None
                     if totalsize == 2: 
-                        self.log.debug("PREFLOP")
-                        back = self.preflop(parts[2]) + '\n'
-                        stdout.write(back)
-                        self.log.debug('OUT: ' + back)
-                        stdout.flush()
-                        pass
+                        back = self.turn(parts[2], "pre_flop") + '\n'
                     elif totalsize == 5:
-                        self.log.debug("FLOP")
-                        back = self.flop(parts[2]) + '\n'
-                        stdout.write(back)
-                        self.log.debug('OUT: ' + back + '\n')
-                        stdout.flush()
+                        back = self.turn(parts[2], "flop") + '\n'
+                    elif totalsize == 6:
+                        back = self.turn(parts[2], "turn") + '\n'
+                    elif totalsize == 7:
+                        back = self.turn(parts[2], "river") 
+                    else:
+                        self.log.debug('Unknown stage!')
                         pass
-                    elif totalsize == 13:
-                        self.log.debug("TURN")
-                        back = self.turn(parts[2]) + '\n'
-                        stdout.write(back)
-                        self.log.debug('OUT: ' + back)
-                        stdout.flush()
-                        pass
-                    elif totalsize == 16:
-                        self.log.debug("RIVER")
-                        back = self.river(parts[2]) 
-                        stdout.write(back + '\n')
-                        self.log.debug('OUT: ' + back + '\n')
-                        stdout.flush()
-                        pass
+                    self.log.debug('OUT: ' + str(back) + '\n')
+                    stdout.write(back)
+                    stdout.flush()
                 else:
                     stderr.write('Unknown command: %s\n' % (command))
                     self.log.debug('ERR: Unknown command: %s\n' % (command))
@@ -220,70 +187,51 @@ class Bot(object):
                 stderr.write('Unknown info_type: %s\n' % (info_type))
                 self.log.debug('Unknown info_type: %s\n' % (info_type))
 
-
-    def preflop(self, timeout):
-        '''
-        Handle preflop hand possibilities
-        '''
-        self.log.debug(self.player.hand)
-        card1 = self.player.hand[0]
-        card2 = self.player.hand[1]
-
-        raiseAmount = 0
-
-        #pocket pair
-        if card1.number == card2.number:
-            raiseAmount = self.player.stack*self._preflopBetRatio
-        
-        #both face cards
-        elif card1.number > 8 and card2.number > 8:
-            raiseAmount = self.player.stack*self._preflopBetRatio
-        
-        #suited connectors
-        elif card1.suit == card2.suit and abs(card1.number - card2.number) == 1:
-            raiseAmount = self.player.stack*self._preflopBetRatio
-
-        #suited ace
-        elif card1.suit == card2.suit and (card1.number == 12 or card2.number == 12):
-            raiseAmount = self.player.stack*self._preflopBetRatio
-
-        elif self.player.stack == 0:
-            return 'check 0'
-        elif self.player.stack < int(self.match_settings['bigBlind']):
-            return 'call 0'
-        else:
-            return 'fold 0'
-
-        return 'raise {0}'.format(raiseAmount)
-
-
-    def flop(self, timeout):
-        '''
-        Once the flop is out, action is to us
-        '''
-        score = self.ev.evaluate(self.table.getHand(), self.player.getHand())
-        self.log.debug('  SCORE: ' + str(score))
-
-        if score >= self._flopFoldThreshold:
-            return 'fold 0'
-
-        if score < self._flopRaiseThreshold:
-            betAmount = self.match_settings['maxWinPot'] * self._flopBetMulti
-            # Bet amount should increase as hadn gets better
-            betAmount *= self._flopRaiseThreshold / score
-            if betAmount > self.match_settings['maxWinPot']:
-                betAmount = self.match_settings['maxWinPot']
-
-            return 'raise {0}'.format(betAmount)
-
-
-    def turn(self, timeout):
+    def turn(self, timeout, stage):
         '''
         Once the turn is out, action is to us
         '''
-        s = self.ev.evaluate(self.table.hand, self.player.hand)
-        self.log.debug("EVAL: " + s)
-        return 'call 0'
+        ours   = None
+        theirs = None
+        action = "call"
+        stagec = self.config[stage]
+        amount = 0
+        if len(self.table.hand) > 0:
+            ours = self.ev.evaluate(self.table.getHand(), self.player.getHand())
+            if len(self.other_player.hand) > 0:
+                theirs = self.ev.evaluate(self.table.getHand(), self.other_player.getHand())
+
+        self.log.debug("")
+        self.log.debug("STAGE: " + stage)
+        self.log.debug("")
+        self.log.debug("Our score: " + str(ours))
+        self.log.debug("Their score: " + str(theirs))
+
+        if stage == "pre_flop":
+            # if we have a high pair or a high matching suit, raise
+            if self.player.hand[0].number == self.player.hand[1].number or\
+                (self.player.hand[0].suit == self.player.hand[1].suit and \
+                self.player.hand[0].number > 10 and self.player.hand[1].number > 10):
+                action = "raise"
+                amount = stagec["raise_multiplier"]*self.stack
+            return '{0} {1}'.format(action, amount)
+
+        if stagec['fold_threshold'] < ours:
+            action = "fold"
+
+        if ours < stagec["raise_threshold"]:
+            action = "raise"
+            amount = stagec["raise_threshold"] / ours * stagec["raise_multiplier"] \
+                * self.player.stack
+            if amount > self.player.stack:
+                amount = self.player.stack
+            elif amount >= self.raisePerStage[stage]:
+                amount = 0
+                action = "call"
+
+            self.raisePerStage[stage] += amount
+
+        return '{0} {1}'.format(action, amount)
 
     def river(self, timeout):
         '''
@@ -292,17 +240,25 @@ class Bot(object):
         
         self.log.debug("RIVER")
         self.log.debug(self.table.hand)
-        s = self.ev.evaluate(self.table.hand, self.player.hand)
+        s = self.ev.evaluate(self.table.hand.getHand(), self.player.hand.getHand())
         self.log.debug("EVAL: " + s)
 
         return 'fold 0'
+
+    
 
 if __name__ == '__main__':
     '''
     Not used as module, so run
     '''
-    b = Bot()
+
+    parser = argparse.ArgumentParser(description="Texas Holdem Bot.")
+    parser.add_argument('--config', type=argparse.FileType('r', 0), default="config.json")
+    args = parser.parse_args()
+
+    b = Bot(args)
     try:
         b.run()
     except Exception:
         b.log.exception('ERROR')
+
