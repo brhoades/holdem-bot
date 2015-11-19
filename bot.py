@@ -32,7 +32,9 @@ class Bot(object):
         self.table = Table()
         self.ev = Evaluator()
 
-        self.raisePerStage = {"pre_flop": 0, "flop": 0, "turn": 0, "river": 0}
+        self.amount_to_call = 0
+
+        self.spentPerStage = {"pre_flop": 0, "flop": 0, "turn": 0, "river": 0}
 
         self.config =  json.load(args.config)
 
@@ -79,6 +81,8 @@ class Bot(object):
                 elif command == 'match':
                     if parts[1] == 'table':
                         self.table.parseHand(parts[2])
+                    elif parts[1] == 'amountToCall':
+                        self.amount_to_call = int(parts[2])
                     else:
                         self.update_match_info(parts[1:])
                     self.log.debug('MATCH RECEIVED')
@@ -195,7 +199,7 @@ class Bot(object):
         theirs = None
         action = "call"
         stagec = self.config[stage]
-        amount = 0
+        amount = self.amount_to_call
         if len(self.table.hand) > 0:
             ours = self.ev.evaluate(self.table.getHand(), self.player.getHand())
             if len(self.other_player.hand) > 0:
@@ -213,7 +217,12 @@ class Bot(object):
                 (self.player.hand[0].suit == self.player.hand[1].suit and \
                 self.player.hand[0].number > 10 and self.player.hand[1].number > 10):
                 action = "raise"
-                amount = stagec["raise_multiplier"]*self.stack
+                amount = stagec["raise_multiplier"] * self.stack
+                if amount < 0:
+                    amount = 0
+                elif amount > self.stack:
+                    amount = self.stack
+                self.spentPerStage[stage] += amount
             return '{0} {1}'.format(action, amount)
 
         if stagec['fold_threshold'] < ours:
@@ -225,27 +234,12 @@ class Bot(object):
                 * self.player.stack
             if amount > self.player.stack:
                 amount = self.player.stack
-            elif amount >= self.raisePerStage[stage]:
+            elif amount >= self.spentPerStage[stage]:
                 amount = 0
                 action = "call"
 
-            self.raisePerStage[stage] += amount
-
+        self.spentPerStage[stage] += amount
         return '{0} {1}'.format(action, amount)
-
-    def river(self, timeout):
-        '''
-        Once the flop is out, action is to us
-        '''
-        
-        self.log.debug("RIVER")
-        self.log.debug(self.table.hand)
-        s = self.ev.evaluate(self.table.hand.getHand(), self.player.hand.getHand())
-        self.log.debug("EVAL: " + s)
-
-        return 'fold 0'
-
-    
 
 if __name__ == '__main__':
     '''
