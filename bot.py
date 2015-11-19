@@ -6,6 +6,7 @@
 # @license MIT License (http://opensource.org/licenses/MIT)
 
 from sys import stderr, stdin, stdout
+import os
 import logging
 import logging.handlers
 from deuces.deuces import Card, Evaluator
@@ -34,9 +35,12 @@ class AI(GameInfoTracker):
         self.log = logging.getLogger('MyLogger')
         self.log.setLevel(logging.DEBUG)
 
-        # Add the log message handler to the logger
-        self.handler = logging.handlers.RotatingFileHandler(
-                      LOG_FILENAME, backupCount=5)
+        if args.log:
+            self.handler = logging.handlers.RotatingFileHandler(
+                    LOG_FILENAME, backupCount=5)
+        else:
+            self.handler = logging.StreamHandler(stderr)
+
         self.log.addHandler(self.handler)
 
     def run(self):
@@ -154,9 +158,12 @@ if __name__ == '__main__':
     '''
     Not used as module, so run
     '''
+    # get script directory for json file
+    p = os.path.join(os.path.dirname(os.path.realpath(__file__)), "config.json")
 
     parser = argparse.ArgumentParser(description="Texas Holdem Bot.")
-    parser.add_argument('--config', type=argparse.FileType('r', 0), default="config.json")
+    parser.add_argument('--config', type=argparse.FileType('r', 0), default=p)
+    parser.add_argument('--log', default=False, action='store_true')
     args = parser.parse_args()
 
     b = AI(args)
