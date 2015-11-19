@@ -1,5 +1,5 @@
 test:
-	java -cp ../texasholdem-engine/bin com.theaigames.game.texasHoldem.TexasHoldem "python2 bot.py" "python2 bot.py"
+	java -cp ../texasholdem-engine/bin com.theaigames.game.texasHoldem.TexasHoldem "python2 bot.py --config config_2.json" "python2 bot.py --config config_2.json"
 
 update:
 	git submodule init

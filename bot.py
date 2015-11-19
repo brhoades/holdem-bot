@@ -6,15 +6,14 @@
 # @license MIT License (http://opensource.org/licenses/MIT)
 
 from sys import stderr, stdin, stdout
-from player import Player
-from table import Table
 import logging
 import logging.handlers
 from deuces.deuces import Card, Evaluator
 import argparse
 import json
+from gameinfotracker import GameInfoTracker
 
-class Bot(object):
+class AI(GameInfoTracker):
     '''
     Main bot class
     '''
@@ -24,21 +23,12 @@ class Bot(object):
 
         Add data that needs to be persisted between rounds here.
         '''
-        self.settings = {}
-        self.match_settings = {}
-        self.game_state = {}
-        self.player = Player()
-        self.other_player = Player()
-        self.table = Table()
         self.ev = Evaluator()
 
-        self.amount_to_call = 0
-
-        self.spentPerStage = {"pre_flop": 0, "flop": 0, "turn": 0, "river": 0}
-
         self.config =  json.load(args.config)
-
         LOG_FILENAME = self.config["logfile"]
+
+        super(AI, self).__init__()
 
         # Set up a specific logger with our desired output level
         self.log = logging.getLogger('MyLogger')
@@ -74,22 +64,11 @@ class Bot(object):
                 command = parts[0].lower()
                 self.log.debug('INCOMING:\t %s' % (line))
 
-                if command == 'settings':
-                    self.update_settings(parts[1:])
-                    self.log.debug('SETTINGS RECIEVED')
-                    pass
-                elif command == 'match':
-                    if parts[1] == 'table':
-                        self.table.parseHand(parts[2])
-                    elif parts[1] == 'amountToCall':
-                        self.amount_to_call = int(parts[2])
-                    else:
-                        self.update_match_info(parts[1:])
-                    self.log.debug('MATCH RECEIVED')
+                if command == 'settings' or command == 'match':
+                    self.update_settings(parts[1], parts[2])
                     pass
                 elif command.startswith('player'):
                     self.update_game_state(parts[0], parts[1], parts[2])
-                    self.log.debug('PLAYER RECIEVED')
                     pass
                 elif command == 'action':
                     totalsize = len(self.table.hand) + len(self.player.hand)
@@ -119,77 +98,6 @@ class Bot(object):
                     stderr.flush()
             except EOFError:
                 return
-
-    def update_settings(self, options):
-        '''
-        Updates game settings
-        '''
-        key, value = options
-        self.settings[key] = value
-
-    def update_match_info(self, options):
-        '''
-        Updates match information
-        '''
-        key, value = options
-
-        if key == 'maxWinPot':
-            value = int(value)
-        self.match_settings[key] = value
-
-    def update_game_state(self, player, info_type, info_value):
-        '''
-        Updates game state
-        '''
-        # Checks if info pertains self
-        if player == self.settings['your_bot']:
-            self.log.debug("  ME: " + player)
-            self.log.debug("  INFOTYPE: " + info_type)
-            # Update bot stack
-            if info_type == 'stack':
-                self.player.stack = int(info_value)
-
-            # Remove blind from stack
-            elif info_type == 'post':
-                self.player.stack-= int(info_value)
-
-            # Update bot cards
-            elif info_type == 'hand':
-                self.player.parseHand(info_value)
-
-            # Round winnings, currently unused
-            elif info_type == 'wins':
-                if 'table' in self.match_settings:
-                    del self.match_settings['table']
-
-            else:
-                stderr.write('Unknown info_type: %s\n' % (info_type))
-                self.log.debug('Unknown info_type: %s\n' % (info_type))
-
-        else:
-            self.log.debug("  THEM: " + player)
-            self.log.debug("  INFOTYPE: " + info_type)
-
-            # Update opponent stack
-            if info_type == 'stack':
-                self.other_player.stack = int(info_value)
-
-            # Remove blind from opponent stack
-            elif info_type == 'post':
-                self.other_player.stack -= int(info_value)
-
-            # Opponent hand on showdown, currently unused
-            elif info_type == 'hand':
-                self.log.debug("SET HAND")
-                self.other_player.parseHand(info_value)
-
-            # Opponent round winnings, currently unused
-            elif info_type == 'wins':
-                if 'table' in self.match_settings:
-                    del self.match_settings['table']
-            else:
-                stderr.write('Unknown info_type: %s\n' % (info_type))
-                self.log.debug('Unknown info_type: %s\n' % (info_type))
 
     def turn(self, timeout, stage):
         '''
@@ -250,7 +158,7 @@ if __name__ == '__main__':
     parser.add_argument('--config', type=argparse.FileType('r', 0), default="config.json")
     args = parser.parse_args()
 
-    b = Bot(args)
+    b = AI(args)
     try:
         b.run()
     except Exception:
