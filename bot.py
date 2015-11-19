@@ -50,9 +50,22 @@ class Bot(object):
         #
         # Percent of earnings to bet relative to confidence
         self._preflopBetRatio = 0.05
-        self._flopBetRatio    = 0.15
         self._turnBetRatio    = 0.10
         self._riverBetratio   = 0.10
+
+        # stage amounts
+        # score for hands is returned 1-7,462
+        # 1 is a royal flush, 7462 is a shitty-ass hand
+        # When do we fold?
+        self._preFlopFoldThreshold = 7000
+        self._flopFoldThreshold    = 6500
+        self._turnFoldThreshold    = 6000
+        # should be relative?
+        #self._riverFoldThreshold   = 5000
+
+
+        self._flopRaiseThreshold   = 4500 
+        self._flopBetMulti         = 0.15
 
     def run(self):
         '''
@@ -98,6 +111,9 @@ class Bot(object):
                     totalsize = len(self.table.hand) + len(self.other_player.hand) \
                             + len(self.player.hand)
                     self.log.debug("ACTION: totalsize={0}".format(totalsize))
+                    self.log.debug('  Table: ' + self.table.getHumanHand())
+                    self.log.debug('  Us: ' + self.player.getHumanHand())
+                    self.log.debug('  them: ' + self.other_player.getHumanHand())
                     if totalsize == 2: 
                         self.log.debug("PREFLOP")
                         back = self.preflop(parts[2]) + '\n'
@@ -217,23 +233,23 @@ class Bot(object):
 
         #pocket pair
         if card1.number == card2.number:
-            raiseAmount = self.match_settings['maxWinPot']*self._preflopBetRatio
+            raiseAmount = self.player.stack*self._preflopBetRatio
         
         #both face cards
         elif card1.number > 8 and card2.number > 8:
-            raiseAmount = self.match_settings['maxWinPot']*self._preflopBetRatio
+            raiseAmount = self.player.stack*self._preflopBetRatio
         
         #suited connectors
         elif card1.suit == card2.suit and abs(card1.number - card2.number) == 1:
-            raiseAmount = self.match_settings['maxWinPot']*self._preflopBetRatio
+            raiseAmount = self.player.stack*self._preflopBetRatio
 
         #suited ace
         elif card1.suit == card2.suit and (card1.number == 12 or card2.number == 12):
-            raiseAmount = self.match_settings['maxWinPot']*self._preflopBetRatio
+            raiseAmount = self.player.stack*self._preflopBetRatio
 
-        elif int(self.match_settings['amountToCall']) == 0:
+        elif self.player.stack == 0:
             return 'check 0'
-        elif int(self.match_settings['amountToCall']) < int(self.match_settings['bigBlind']):
+        elif self.player.stack < int(self.match_settings['bigBlind']):
             return 'call 0'
         else:
             return 'fold 0'
@@ -245,17 +261,26 @@ class Bot(object):
         '''
         Once the flop is out, action is to us
         '''
-        self.log.debug('  Table: ' + self.table.getHumanHand())
-        self.log.debug('  Us: ' + self.player.getHumanHand())
-        self.log.debug('  them: ' + self.other_player.getHumanHand())
         score = self.ev.evaluate(self.table.getHand(), self.player.getHand())
         self.log.debug('  SCORE: ' + str(score))
 
+        if score >= self._flopFoldThreshold:
+            return 'fold 0'
+
+        if score < self._flopRaiseThreshold:
+            betAmount = self.match_settings['maxWinPot'] * self._flopBetMulti
+            # Bet amount should increase as hadn gets better
+            betAmount *= self._flopRaiseThreshold / score
+            if betAmount > self.match_settings['maxWinPot']:
+                betAmount = self.match_settings['maxWinPot']
+
+            return 'raise {0}'.format(betAmount)
+        return
         #made hand
         if int(ranking[0]) > 1:
             #already have 2pair or better, bet the pot
             return 'raise {0}'.format(self.match_settings['maxWinPot'])
-
+        return
         #flush draw
         flush_draw = False
         suits = ""
