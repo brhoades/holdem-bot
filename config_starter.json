@@ -1,0 +1,23 @@
+{
+  "logfile": "botnum2.log",
+  "pre_flop": {
+    "fold_threshold": 7000,
+    "raise_threshold": 5000,
+    "raise_multiplier": 1.25
+  },
+  "flop": {
+    "fold_threshold": 6500,
+    "raise_threshold": 4500,
+    "raise_multiplier": 1.5
+  },
+  "turn": {
+    "fold_threshold": 6250,
+    "raise_threshold": 4000,
+    "raise_multiplier": 1.75
+  },
+  "river": {
+    "fold_threshold": 5500,
+    "raise_threshold": 3500,
+    "raise_multiplier": 2
+  }
+}
