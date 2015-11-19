@@ -85,7 +85,7 @@ class AI(GameInfoTracker):
                     elif totalsize == 6:
                         back = self.turn(parts[2], "turn") + '\n'
                     elif totalsize == 7:
-                        back = self.turn(parts[2], "river") 
+                        back = self.turn(parts[2], "river") + '\n'
                     else:
                         self.log.debug('Unknown stage!')
                         pass
@@ -125,29 +125,30 @@ class AI(GameInfoTracker):
                 (self.player.hand[0].suit == self.player.hand[1].suit and \
                 self.player.hand[0].number > 10 and self.player.hand[1].number > 10):
                 action = "raise"
-                amount = stagec["raise_multiplier"] * self.stack
-                if amount < 0:
-                    amount = 0
-                elif amount > self.stack:
-                    amount = self.stack
-                self.spentPerStage[stage] += amount
+                amount = stagec["raise_multiplier"] * self.player.stack
+                return self.raise_amount(amount, stage)
             return '{0} {1}'.format(action, amount)
-
-        if stagec['fold_threshold'] < ours:
-            action = "fold"
 
         if ours < stagec["raise_threshold"]:
             action = "raise"
             amount = stagec["raise_threshold"] / ours * stagec["raise_multiplier"] \
                 * self.player.stack
-            if amount > self.player.stack:
-                amount = self.player.stack
-            elif amount >= self.spentPerStage[stage]:
-                amount = 0
-                action = "call"
+            return self.raise_amount(amount, stage)
+
+        if stagec['fold_threshold'] < ours:
+            action = "fold"
+
 
         self.spentPerStage[stage] += amount
         return '{0} {1}'.format(action, amount)
+
+    def raise_amount(self, amount, stage):
+        # the raise amount is what the bot "thinks" we should be calling.
+        if self.amount_to_call >= amount or self.player.stack < amount:
+            return "call 0"
+        
+        self.spentPerStage[stage] += amount
+        return '{0} {1}'.format("raise", amount)
 
 if __name__ == '__main__':
     '''
