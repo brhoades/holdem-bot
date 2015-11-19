@@ -1,4 +1,5 @@
 test:
+	rm -f *log
 	java -cp ../texasholdem-engine/bin com.theaigames.game.texasHoldem.TexasHoldem \
 		"python2 bot.py --log --config config_1.json" \
 		"python2 bot.py --log --config config_2.json"

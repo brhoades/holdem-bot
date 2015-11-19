@@ -108,20 +108,17 @@ class AI(GameInfoTracker):
         Once the turn is out, action is to us
         '''
         ours   = None
-        theirs = None
         action = "call"
         stagec = self.config[stage]
         amount = self.amount_to_call
         if len(self.table.hand) > 0:
-            ours = self.ev.evaluate(self.table.getHand(), self.player.getHand())
-            if len(self.other_player.hand) > 0:
-                theirs = self.ev.evaluate(self.table.getHand(), self.other_player.getHand())
+            ours = self.get_score()
+            
 
         self.log.debug("")
         self.log.debug("STAGE: " + stage)
         self.log.debug("")
         self.log.debug("Our score: " + str(ours))
-        self.log.debug("Their score: " + str(theirs))
 
         if stage == "pre_flop":
             # if we have a high pair or a high matching suit, raise
@@ -153,6 +150,10 @@ class AI(GameInfoTracker):
         
         self.spentPerStage[stage] += amount
         return '{0} {1}'.format("raise", amount)
+    
+    def get_score(self):
+        base_score = self.ev.evaluate(self.table.getHand(), self.player.getHand())
+        return base_score
 
 if __name__ == '__main__':
     '''
