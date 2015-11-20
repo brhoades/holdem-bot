@@ -137,7 +137,7 @@ class AI(GameInfoTracker):
                 * self.player.stack
             return self.raise_amount(amount, stage)
 
-        if stagec['fold_threshold'] < ours:
+        if ours < stagec['fold_threshold']:
             action = "fold"
 
 
