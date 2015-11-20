@@ -163,25 +163,29 @@ class AI(GameInfoTracker):
         return > 0: our hand is better on average by #
         return < 0: our hand is worse on average by #
         """
-        if self.last_hand_count == len(self.table.hand):
+        if self.last_hand_count == len(self.table.hand)+len(self.player.hand) or len(self.table.getHand()) == 0:
             return self.last_hand_score
         else:
-            self.last_hand_count = len(self.table.hand)
+            self.last_hand_count = len(self.table.hand) + len(self.player.hand)
 
-        table_adjusted = self.table.getHand()
+        table_adjusted = tuple(self.table.getHand())
 
-        base_score = self.ev.evaluate(table_adjusted, self.player.getHand())
+        base_score = self.ev.evaluate(self.table.getHand(), self.player.getHand())
 
+        self.log.debug("Adjusting cards")
         # change deck into deuces cards
-        deck_adjusted = [dCard.new(x) for x in self.deck.cards]
+        deck_adjusted = (dCard.new(x) for x in self.deck.cards)
 
+        self.log.debug("Getting hands")
         # all possbile hands
         possibilities = itertools.combinations(deck_adjusted, 2)
 
+        self.log.debug("Evaluating possibilities")
+        length = len(self.table.hand) + len(self.player.hand)
         scoresum = 0
         num = 0
         for p in possibilities:
-            scoresum += self.ev.evaluate(table_adjusted, list(p))
+            scoresum += self.ev.hand_size_map[length](table_adjusted+p)
             num += 1
         scoresum /= num
 
