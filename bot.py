@@ -150,8 +150,8 @@ class AI(GameInfoTracker):
         if self.amount_to_call >= amount:
             return "call 0"
         
-        if amount > self.player.stack:
-            amount = self.player.stack
+        if amount > self.player.stack * self.config["confidence"]:
+            amount = self.player.stack * self.config["confidence"]
         elif amount < 0:
             return "call 0"
 
