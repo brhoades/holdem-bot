@@ -4,21 +4,21 @@
   "pre_flop": {
     "fold_threshold": -1000000,
     "raise_threshold": 2000,
-    "raise_multiplier": 0.25
+    "raise_multiplier": 0.05
   },
   "flop": {
     "fold_threshold": -2000,
     "raise_threshold": 1500,
-    "raise_multiplier": 0.5
+    "raise_multiplier": 0.25
   },
   "turn": {
     "fold_threshold": -1500,
     "raise_threshold": 750,
-    "raise_multiplier": 0.75
+    "raise_multiplier": 0.45
   },
   "river": {
-    "fold_threshold": -1000,
+    "fold_threshold": -1500,
     "raise_threshold": 500,
-    "raise_multiplier": 2
+    "raise_multiplier": 0.65
   }
 }

@@ -147,12 +147,11 @@ class AI(GameInfoTracker):
     def raise_amount(self, amount, stage):
         self.log.debug("RAISE: " + str(amount))
         # the raise amount is what the bot "thinks" we should be calling.
-        if self.amount_to_call >= amount:
-            return "call 0"
         
         if amount > self.player.stack * self.config["confidence"]:
             amount = self.player.stack * self.config["confidence"]
-        elif amount < 0:
+
+        if self.amount_to_call >= amount:
             return "call 0"
 
         self.spentPerStage[stage] += amount
