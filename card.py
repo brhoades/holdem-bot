@@ -4,6 +4,12 @@ class Card(object):
     def __init__(self, card_string):
         self.card_string = card_string
 
-        self.number = '23456789TJQKA'.find(card_string[0])+2
+        suits  = "shdc"
+        numbers = "AKQJT98765432"
+        self.card_number = suits.find(card_string[1]) + numbers.find(card_string[0])*4
+        # specialKEval ^
+
+        self.number = numbers[::-1].find(card_string[0])+2
         self.suit = card_string[1]
         self.rank = dCard.new(card_string)
+

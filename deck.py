@@ -3,8 +3,8 @@ class Deck(object):
         our deck for counting cards
     """
     def __init__(self):
-        suits  = "h d s c".split()
-        numbers = "K Q J T 9 8 7 6 5 4 3 2".split()
+        suits  = "s h d c".split()
+        numbers = "A K Q J T 9 8 7 6 5 4 3 2".split()
 
         self.cards = []
 

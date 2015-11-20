@@ -14,6 +14,7 @@ import argparse
 import json
 from gameinfotracker import GameInfoTracker
 import itertools
+import cProfile
 
 class AI(GameInfoTracker):
     '''

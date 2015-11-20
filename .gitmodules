@@ -1,3 +1,9 @@
 [submodule "deuces"]
 	path = deuces
 	url = git@github.com:worldveil/deuces.git
+[submodule "SpecialKEval"]
+	path = SpecialKEval
+	url = git@github.com:kennethshackleton/SpecialKEval.git
+[submodule "score/SpecialKEval"]
+	path = score/SpecialKEval
+	url = git@github.com:kennethshackleton/SpecialKEval.git
