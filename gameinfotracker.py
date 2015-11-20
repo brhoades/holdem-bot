@@ -72,8 +72,6 @@ class GameInfoTracker(object):
                 stderr.write('Unknown info_type: %s\n' % (info_type))
                 self.log.debug('Unknown info_type: %s\n' % (info_type))
 
-        self.log.debug("DECK: " +str(self.deck.cards))
-
     def new_match(self):
         for k in self.spentPerStage:
             self.spentPerStage[k] = 0

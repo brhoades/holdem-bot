@@ -9,10 +9,11 @@ from sys import stderr, stdin, stdout
 import os
 import logging
 import logging.handlers
-from deuces.deuces import Card, Evaluator
+from deuces.deuces import Card as dCard, Evaluator
 import argparse
 import json
 from gameinfotracker import GameInfoTracker
+import itertools
 
 class AI(GameInfoTracker):
     '''
@@ -152,8 +153,35 @@ class AI(GameInfoTracker):
         return '{0} {1}'.format("raise", amount)
     
     def get_score(self):
-        base_score = self.ev.evaluate(self.table.getHand(), self.player.getHand())
-        return base_score
+        """
+        Returns a score that adjusts for their average hand.
+        return > 0: our hand is better on average by #
+        return < 0: our hand is worse on average by #
+        """
+        table_adjusted = self.table.getHand()
+
+        base_score = self.ev.evaluate(table_adjusted, self.player.getHand())
+
+        # change deck into deuces cards
+        deck_adjusted = [dCard.new(x) for x in self.deck.cards]
+
+        # all possbile hands
+        possibilities = itertools.combinations(deck_adjusted, 2)
+
+        scoresum = 0
+        num = 0
+        for p in possibilities:
+            scoresum += self.ev.evaluate(table_adjusted, list(p))
+            num += 1
+        scoresum /= num
+
+        self.log.debug("Calculated scoreaverage: " + str(scoresum))
+        self.log.debug("Our score: " + str(base_score))
+
+        if base_score is not None:
+            return scoresum - base_score
+        else:
+            return None
 
 if __name__ == '__main__':
     '''
