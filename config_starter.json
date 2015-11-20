@@ -1,23 +1,23 @@
 {
-  "logfile": "botnum2.log",
+  "logfile": "botnum1.log",
   "pre_flop": {
-    "fold_threshold": 1000000,
-    "raise_threshold": 5000,
-    "raise_multiplier": 1.25
+    "fold_threshold": -1000000,
+    "raise_threshold": 2000,
+    "raise_multiplier": 0.25
   },
   "flop": {
-    "fold_threshold": 2000,
-    "raise_threshold": 2500,
-    "raise_multiplier": 1.5
+    "fold_threshold": -2000,
+    "raise_threshold": 1500,
+    "raise_multiplier": 0.5
   },
   "turn": {
-    "fold_threshold": 1000,
-    "raise_threshold": 2000,
-    "raise_multiplier": 1.75
+    "fold_threshold": -1500,
+    "raise_threshold": 750,
+    "raise_multiplier": 0.75
   },
   "river": {
-    "fold_threshold": 500,
-    "raise_threshold": 1500,
+    "fold_threshold": -1000,
+    "raise_threshold": 500,
     "raise_multiplier": 2
   }
 }

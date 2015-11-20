@@ -77,10 +77,10 @@ class AI(GameInfoTracker):
                     pass
                 elif command == 'action':
                     totalsize = len(self.table.hand) + len(self.player.hand)
-                    self.log.debug("ACTION: totalsize={0}".format(totalsize))
-                    self.log.debug('  Table: ' + self.table.getHumanHand())
-                    self.log.debug('  Us: ' + self.player.getHumanHand())
-                    self.log.debug('  them: ' + self.other_player.getHumanHand())
+                    #self.log.debug("ACTION: totalsize={0}".format(totalsize))
+                    #self.log.debug('  Table: ' + self.table.getHumanHand())
+                    #self.log.debug('  Us: ' + self.player.getHumanHand())
+                    #self.log.debug('  them: ' + self.other_player.getHumanHand())
 
                     back = None
                     if totalsize == 2: 
@@ -131,7 +131,7 @@ class AI(GameInfoTracker):
                 return self.raise_amount(amount, stage)
             return '{0} {1}'.format(action, amount)
 
-        if ours < stagec["raise_threshold"]:
+        if ours >= stagec["raise_threshold"]:
             action = "raise"
             amount = stagec["raise_threshold"] / ours * stagec["raise_multiplier"] \
                 * self.player.stack
@@ -145,10 +145,16 @@ class AI(GameInfoTracker):
         return '{0} {1}'.format(action, amount)
 
     def raise_amount(self, amount, stage):
+        self.log.debug("RAISE: " + str(amount))
         # the raise amount is what the bot "thinks" we should be calling.
-        if self.amount_to_call >= amount or self.player.stack < amount:
+        if self.amount_to_call >= amount:
             return "call 0"
         
+        if amount > self.player.stack:
+            amount = self.player.stack
+        elif amount < 0:
+            return "call 0"
+
         self.spentPerStage[stage] += amount
         return '{0} {1}'.format("raise", amount)
     
@@ -158,6 +164,11 @@ class AI(GameInfoTracker):
         return > 0: our hand is better on average by #
         return < 0: our hand is worse on average by #
         """
+        if self.last_hand_count == len(self.table.hand):
+            return self.last_hand_score
+        else:
+            self.last_hand_count = len(self.table.hand)
+
         table_adjusted = self.table.getHand()
 
         base_score = self.ev.evaluate(table_adjusted, self.player.getHand())
@@ -177,6 +188,8 @@ class AI(GameInfoTracker):
 
         self.log.debug("Calculated scoreaverage: " + str(scoresum))
         self.log.debug("Our score: " + str(base_score))
+
+        self.last_hand_score = scoresum - base_score
 
         if base_score is not None:
             return scoresum - base_score
