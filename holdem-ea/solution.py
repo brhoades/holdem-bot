@@ -2,7 +2,7 @@ import random
 import copy
 import json
 
-class Sol(object):
+class Solution(object):
     def __init__(self, data, perturb):
         self.data = copy.deepcopy(data)
         self.fit  = 0
