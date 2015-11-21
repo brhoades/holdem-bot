@@ -31,7 +31,7 @@ class GameInfoTracker(object):
             self.amount_to_call = int(value)
         else:
             if key == 'round':
-                self.log.debug("NEW ROUND: " + value)
+                #self.log.debug("NEW ROUND: " + value)
                 self.new_match()
             self.settings[key] = value
 
@@ -53,9 +53,11 @@ class GameInfoTracker(object):
                 self.player.parseHand(info_value)
                 self.deck.remove_cards(self.player.hand)
             elif info_type == 'win':
-                self.log.debug("I WIN!")
+                pass
+                #self.log.debug("I WIN!")
             else:
-                stderr.write('Unknown info_type: %s\n' % (info_type))
+                pass
+                #stderr.write('Unknown info_type: %s\n' % (info_type))
                 #self.log.debug('Unknown info_type: %s\n' % (info_type))
         else:
 
@@ -72,9 +74,11 @@ class GameInfoTracker(object):
                 self.other_player.parseHand(info_value)
                 self.deck.remove_cards(self.other_player.hand)
             elif info_type == 'wins':
-                self.log.debug("THEY WIN!")
+                pass
+                #self.log.debug("THEY WIN!")
             else:
-                stderr.write('Unknown info_type: %s\n' % (info_type))
+                pass
+                #stderr.write('Unknown info_type: %s\n' % (info_type))
                 #self.log.debug('Unknown info_type: %s\n' % (info_type))
 
     def new_match(self):

@@ -43,6 +43,8 @@ class AI(GameInfoTracker):
         self.log = logging.getLogger('MyLogger')
         self.log.setLevel(logging.DEBUG)
 
+        if args.no_log:
+            self.log.setLevel(logging.CRITICAL)
         if args.log:
             self.handler = logging.handlers.RotatingFileHandler(
                     LOG_FILENAME, backupCount=5)
@@ -75,6 +77,7 @@ class AI(GameInfoTracker):
                 parts = line.split()
                 command = parts[0].lower()
                 #self.log.debug('INCOMING:\t %s' % (line))
+                #self.log.debug('%s' % (line))
 
                 if command == 'settings' or command == 'match':
                     self.update_settings(parts[1], parts[2])
@@ -99,14 +102,14 @@ class AI(GameInfoTracker):
                     elif totalsize == 7:
                         back = self.turn(parts[2], "river") + '\n'
                     else:
-                        self.log.debug('Unknown stage!')
+                        #self.log.debug('Unknown stage!')
                         pass
-                    self.log.debug('OUT: ' + str(back) + '\n')
+                    #self.log.debug('OUT: ' + str(back) + '\n')
                     stdout.write(back)
                     stdout.flush()
                 else:
                     stderr.write('Unknown command: %s\n' % (command))
-                    self.log.debug('ERR: Unknown command: %s\n' % (command))
+                    #self.log.debug('ERR: Unknown command: %s\n' % (command))
                     stderr.flush()
             except EOFError:
                 return
@@ -123,10 +126,10 @@ class AI(GameInfoTracker):
             ours = self.get_score()
             
 
-        self.log.debug("")
-        self.log.debug("STAGE: " + stage)
-        self.log.debug("")
-        self.log.debug("Our score: " + str(ours))
+        #self.log.debug("")
+        #self.log.debug("STAGE: " + stage)
+        #self.log.debug("")
+        #self.log.debug("Our score: " + str(ours))
 
         if stage == "pre_flop":
             # if we have a high pair or a high matching suit, raise
@@ -152,7 +155,7 @@ class AI(GameInfoTracker):
         return '{0} {1}'.format(action, amount)
 
     def raise_amount(self, amount, stage):
-        self.log.debug("RAISE: " + str(amount))
+        #self.log.debug("RAISE: " + str(amount))
         # the raise amount is what the bot "thinks" we should be calling.
         
         if amount > self.player.stack * self.config["confidence"]:
@@ -194,7 +197,7 @@ class AI(GameInfoTracker):
                 scoresum += self.ev.hand_size_map[length](table_adjusted+p)
                 num += 1
             scoresum /= num
-            self.log.debug("NUM: " + str(num))
+            #self.log.debug("NUM: " + str(num))
         else:
             # change deck into specialkards
             table_adjusted = [x.card_number for x in self.table.hand]
@@ -223,6 +226,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Texas Holdem Bot.")
     parser.add_argument('--config', type=argparse.FileType('r', 0), default=p)
     parser.add_argument('--log', default=False, action='store_true')
+    parser.add_argument('--no-log', default=False, action='store_true')
     parser.add_argument('--use-eval', default=False, action='store_true')
     args = parser.parse_args()
 
