@@ -12,9 +12,9 @@ int* createDeck(char** argv, int* cards, const int numCards);
 
 int main(int argc, char *argv[])
 {
-  if(argc != 6 && argc != 8)
+  if(argc < 6 || argc > 8)
   {
-    cerr << "Must have 5 or 7 arguments." << endl;
+    cerr << "Must have 5-7 arguments." << endl;
     return 0;
   }
 
@@ -38,6 +38,23 @@ int main(int argc, char *argv[])
       {
         sum += eval.GetRank(cards[0], cards[1], cards[2], deck[i], deck[j]);
         count++;
+      }
+    }
+  }
+  else if(argc == 7)
+  {
+    SevenEval const eval;
+    // this isn't officially supported... emulate it by guessing the final card too
+    for(int i=0; i<NUM_CARDS_IN_DECK-argc+1; i++)
+    {
+      for(int j=0; j<i; j++)
+      {
+        for(int k=0; k<j; k++)
+        {
+          sum += eval.GetRank(cards[0], cards[1], cards[2], cards[3], 
+              deck[i], deck[j], deck[k]);
+          count++;
+        }
       }
     }
   }

@@ -14,11 +14,19 @@ package:
 	find . -iname "*.pyc" -exec rm -vf {} \;
 	zip -r -9 ../holdem-bot.zip *
 
-test:
+test_real:
 	rm -f *log
 	java -cp ../texasholdem-engine/bin com.theaigames.game.texasHoldem.TexasHoldem \
 		"python2 bot.py --log --config config_1.json" \
 		"python2 bot.py --log --config config_2.json"
+
+test: test_ea
+
+test_ea:
+	rm -f *log
+	java -cp ../texasholdem-engine/bin com.theaigames.game.texasHoldem.TexasHoldem \
+		"python2 bot.py --log --config config_1.json --use-eval" \
+		"python2 bot.py --log --config config_2.json --use-eval"
 
 profile:
 	rm -f *log

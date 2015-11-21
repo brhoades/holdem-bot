@@ -1,2 +1,2 @@
 default:
-	g++ specialeval.cpp SpecialKEval/src/*.cpp -o eval
+	g++ -g -std=c++14 specialeval.cpp SpecialKEval/src/*.cpp -o eval
