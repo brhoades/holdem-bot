@@ -43,7 +43,7 @@ profile:
 		--config config_1.json --no-log --use-eval < profile_input/bot_input_p1.txt &> /dev/null
 	@echo "Creating SVG"
 	-@ pyprof2calltree2 -i /tmp/profile_data_config_1.pyprof -o /tmp/profile_data_config_1.callgrind
-	gprof2dot -p 0.01 -n 0.01 --format=callgrind --output=/tmp/out.dot /tmp/profile_data_config_1.callgrind
+	gprof2dot  --format=callgrind --output=/tmp/out.dot /tmp/profile_data_config_1.callgrind
 	 dot -Tsvg /tmp/out.dot -o$(FILE) &> /dev/null
 	 @echo "Uploading $(FILE)"
 	 chmod 775 $(FILE)
