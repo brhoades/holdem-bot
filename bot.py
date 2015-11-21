@@ -31,7 +31,10 @@ class AI(GameInfoTracker):
         '''
         self.ev = Evaluator()
 
-        self.config =  json.load(args.config)
+        if args.config_data is None:
+            self.config =  json.load(args.config)
+        else:
+            self.config = json.loads(args.config_data)
         LOG_FILENAME = self.config["logfile"]
 
         self.use_eval = args.use_eval
@@ -222,6 +225,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="Texas Holdem Bot.")
     parser.add_argument('--config', type=argparse.FileType('r', 0), default=p)
+    parser.add_argument('--config-data', default=None)
     parser.add_argument('--log', default=False, action='store_true')
     parser.add_argument('--no-log', default=False, action='store_true')
     parser.add_argument('--use-eval', default=False, action='store_true')

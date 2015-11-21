@@ -1,5 +1,6 @@
 from solution import Solution
 import json
+from fitness import play_poker
 
 class Generation(object):
     """
@@ -18,3 +19,16 @@ class Generation(object):
 
     def load_population(self, population):
         self.pop = population
+    
+    def reproduce(self):
+        """
+        Create mu children, add them into our generation. Those who reproduce are 
+        determined by a tournament. The best always get a chance.
+        """
+        children = []
+        for i in range(0, self.size, 2):
+            play_poker(self.pop[i], self.pop[i+1])
+
+
+    def natural_selection(self):
+        pass

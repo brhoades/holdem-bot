@@ -13,5 +13,6 @@ class EA(object):
 
     def run(self):
         for i in range(0,self.runs):
-            pass
-
+            # this modifies the generation and adds babies
+            self.this_generation.reproduce()
+            self.this_generation.natural_selection()

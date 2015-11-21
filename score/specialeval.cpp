@@ -9,8 +9,8 @@ using namespace std;
 #define MAX_CARDS_IN      7
 #define MAX_SCORE         7462
 
-inline short* createDeck(short* cards, const int numCards);
-static PyObject* specialeval_get_score(PyObject* self, PyObject* args);
+inline short* createDeck(short* cards, const short numCards);
+static inline PyObject* specialeval_get_score(PyObject* self, PyObject* args);
 
 static PyMethodDef ScoreMethods[] = {
     {"get_score", specialeval_get_score, METH_VARARGS,
@@ -27,10 +27,10 @@ PyMODINIT_FUNC initspecialeval(void)
     return;
 }
 
-static PyObject* specialeval_get_score(PyObject* self, PyObject* args)
+static inline PyObject* specialeval_get_score(PyObject* self, PyObject* args)
 {
   short cards[MAX_CARDS_IN] = {-1};
-  int numCards = 7;
+  short numCards = 7;
   if(PyArg_ParseTuple(args, "iiiii|ii", &cards[0], &cards[1], &cards[2], 
      &cards[3], &cards[4], &cards[5], &cards[6]))
   {
@@ -46,24 +46,24 @@ static PyObject* specialeval_get_score(PyObject* self, PyObject* args)
   short* deck = createDeck(cards, numCards); 
   unsigned short count=0;
   unsigned int sum=0;
+  static const FiveEval eval5;
+  static const SevenEval eval7;
+    
 
   if(numCards == 6)
   {
-    static FiveEval const eval;
-    
     // get hand score possibilities for them and sum them
     for(short i=0; i<NUM_CARDS_IN_DECK-numCards; i++)
     {
       for(short j=0; j<i; j++)
       {
-        sum += eval.GetRank(cards[0], cards[1], cards[2], deck[i], deck[j]);
+        sum += eval5.GetRank(cards[0], cards[1], cards[2], deck[i], deck[j]);
         count++;
       }
     }
   }
   else if(numCards == 7)
   {
-    static SevenEval const eval;
     // this isn't officially supported... emulate it by guessing the final card too
     for(short i=0; i<NUM_CARDS_IN_DECK-numCards; i++)
     {
@@ -71,7 +71,7 @@ static PyObject* specialeval_get_score(PyObject* self, PyObject* args)
       {
         for(short k=0; k<j; k++)
         {
-          sum += eval.GetRank(cards[0], cards[1], cards[2], cards[3], 
+          sum += eval7.GetRank(cards[0], cards[1], cards[2], cards[3], 
               deck[i], deck[j], deck[k]);
           count++;
         }
@@ -80,14 +80,12 @@ static PyObject* specialeval_get_score(PyObject* self, PyObject* args)
   }
   else
   {
-    static SevenEval const eval;
-
     // get hand score possibilities for them and sum them
     for(short i=0; i<NUM_CARDS_IN_DECK-numCards; i++)
     {
       for(short j=0; j<i; j++)
       {
-        sum += eval.GetRank(cards[0], cards[1], cards[2], cards[3], cards[4], 
+        sum += eval7.GetRank(cards[0], cards[1], cards[2], cards[3], cards[4], 
             deck[i], deck[j]);
         count++;
       }
@@ -98,7 +96,7 @@ static PyObject* specialeval_get_score(PyObject* self, PyObject* args)
   return Py_BuildValue("i", MAX_SCORE - (sum / count));
 }
 
-inline short* createDeck(short* cards, const int numCards)
+inline short* createDeck(short* cards, const short numCards)
 {
   short* deck = new short[NUM_CARDS_IN_DECK-numCards];
   short decki=0;
