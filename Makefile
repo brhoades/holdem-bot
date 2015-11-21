@@ -30,6 +30,10 @@ test_ea:
 
 profile:
 	rm -f *log
+	rm -f /tmp/profile_data_config_1.pyprof
 	java -cp ../texasholdem-engine/bin com.theaigames.game.texasHoldem.TexasHoldem \
-		"python2 -m cProfile -o /tmp/profile_data_config_1.pyprof bot.py --log --config config_1.json" \
-		"python2 bot.py --log --config config_2.json"
+		"python2 -m cProfile -o /tmp/profile_data_config_1.pyprof bot.py --config config_1.json --use-eval" \
+		"python2 bot.py --config config_2.json --use-eval"
+	pyprof2calltree2 -i /tmp/profile_data_config_1.pyprof -o /tmp/profile_data_config_1.callgrind
+	gprof2dot --format=callgrind --output=/tmp/out.dot /tmp/profile_data_config_1.dot
+	dot -Tsvg /tmp/profile_data_config_1.dot -o /tmp/graph.svg

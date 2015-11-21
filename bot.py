@@ -74,7 +74,7 @@ class AI(GameInfoTracker):
 
                 parts = line.split()
                 command = parts[0].lower()
-                self.log.debug('INCOMING:\t %s' % (line))
+                #self.log.debug('INCOMING:\t %s' % (line))
 
                 if command == 'settings' or command == 'match':
                     self.update_settings(parts[1], parts[2])
@@ -201,10 +201,10 @@ class AI(GameInfoTracker):
             hand_adjusted  = [x.card_number for x in self.player.hand]
 
             # average hand for them
-            scoresum = eval(hand_adjusted, table_adjusted, self.eval_path, self.log)
+            scoresum = eval(hand_adjusted, table_adjusted, self.eval_path)
 
-        self.log.debug("Calculated scoreaverage: " + str(scoresum))
-        self.log.debug("Our score: " + str(base_score))
+        #self.log.debug("Calculated scoreaverage: " + str(scoresum))
+        #self.log.debug("Our score: " + str(base_score))
 
         self.last_hand_score = scoresum - base_score
 
