@@ -1,36 +1,55 @@
-#include <iostream>
 #include "SpecialKEval/src/FiveEval.h"
 #include "SpecialKEval/src/SevenEval.h"
 #include <cstdlib>
+#include <Python.h>
 
 using namespace std;
 
 #define NUM_CARDS_IN_DECK 52
+#define MAX_CARDS_IN      7
 #define MAX_SCORE         7462
 
-inline short* createDeck(char** argv, short* cards, const int numCards);
+inline short* createDeck(short* cards, const int numCards);
+static PyObject* specialeval_get_score(PyObject* self, PyObject* args);
 
-int main(int argc, char *argv[])
+static PyMethodDef ScoreMethods[] = {
+    {"get_score", specialeval_get_score, METH_VARARGS,
+     "Execute a shell command."},
+    {NULL, NULL, 0, NULL}        /* Sentinel */
+};
+
+PyMODINIT_FUNC initspecialeval(void)
 {
-  if(argc < 6 || argc > 8)
+  PyObject *m;
+
+  m = Py_InitModule("specialeval", ScoreMethods);
+  if (m == NULL)
+    return;
+}
+
+static PyObject* specialeval_get_score(PyObject* self, PyObject* args)
+{
+  short cards[MAX_CARDS_IN] = {-1};
+  int numCards = 7;
+  if(PyArg_ParseTuple(args, "iiiii|ii", &cards[0], &cards[1], &cards[2], 
+     &cards[3], &cards[4], &cards[5], &cards[6]))
   {
-    cerr << "Must have 5-7 arguments." << endl;
-    return 0;
+    for(short i=5; i<MAX_CARDS_IN; i++)
+    {
+      if(cards[i] == -1)
+        numCards = i; 
+    }
   }
+  else
+    return NULL;
 
-  // of the cards passed, first 3/5 are the table, last 2 are our cards that can't be chosen
-  int numCards = argc-1;
-  short cards[numCards];
-  for(short i=1; i<argc; i++)
-    cards[i-1] = atoi(argv[i]); 
-
-  short* deck = createDeck(argv, cards, numCards); 
+  short* deck = createDeck(cards, numCards); 
   unsigned short count=0;
   unsigned int sum=0;
 
-  if(argc == 6)
+  if(numCards == 6)
   {
-    FiveEval const eval;
+    static FiveEval const eval;
     
     // get hand score possibilities for them and sum them
     for(short i=0; i<NUM_CARDS_IN_DECK-numCards; i++)
@@ -42,9 +61,9 @@ int main(int argc, char *argv[])
       }
     }
   }
-  else if(argc == 7)
+  else if(numCards == 7)
   {
-    SevenEval const eval;
+    static SevenEval const eval;
     // this isn't officially supported... emulate it by guessing the final card too
     for(short i=0; i<NUM_CARDS_IN_DECK-numCards; i++)
     {
@@ -61,7 +80,7 @@ int main(int argc, char *argv[])
   }
   else
   {
-    SevenEval const eval;
+    static SevenEval const eval;
 
     // get hand score possibilities for them and sum them
     for(short i=0; i<NUM_CARDS_IN_DECK-numCards; i++)
@@ -75,13 +94,11 @@ int main(int argc, char *argv[])
     }
   }
 
-  cout << MAX_SCORE - (sum / count) << endl;
-
   delete[] deck;
-  return 0;
+  return Py_BuildValue("i", MAX_SCORE - (sum / count));
 }
 
-inline short* createDeck(char** argv, short* cards, const int numCards)
+inline short* createDeck(short* cards, const int numCards)
 {
   short* deck = new short[NUM_CARDS_IN_DECK-numCards];
   short decki=0;

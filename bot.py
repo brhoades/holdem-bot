@@ -17,7 +17,7 @@ from gameinfotracker import GameInfoTracker
 import itertools
 import cProfile
 
-from score.eval import eval
+from score.specialeval import get_score
 
 class AI(GameInfoTracker):
     '''
@@ -204,7 +204,7 @@ class AI(GameInfoTracker):
             hand_adjusted  = [x.card_number for x in self.player.hand]
 
             # average hand for them
-            scoresum = eval(hand_adjusted, table_adjusted, self.eval_path)
+            scoresum = get_score(*(table_adjusted+hand_adjusted))
 
         #self.log.debug("Calculated scoreaverage: " + str(scoresum))
         #self.log.debug("Our score: " + str(base_score))
