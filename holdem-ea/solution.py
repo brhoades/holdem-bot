@@ -33,12 +33,9 @@ class Solution(object):
         for k in d:
             if isinstance(d[k], int) or isinstance(d[k], float):
                 i = random.randint(0,9)
-                if i <= 2:
+                if i <= 3:
                     # can be completely transformed
                     d[k] *= random.random()
-                # or sign flipped
-                elif i == 3:
-                    d[k] *= -1
                 elif i == 4:
                     # or increased
                     d[k] += random.random()
