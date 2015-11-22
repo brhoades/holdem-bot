@@ -16,3 +16,4 @@ class EA(object):
             # this modifies the generation and adds babies
             self.this_generation.reproduce()
             self.this_generation.natural_selection()
+            self.this_generation.number += 1

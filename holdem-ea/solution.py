@@ -5,17 +5,20 @@ import md5
 import os
 
 class Solution(object):
-    def __init__(self, data, perturb):
+    def __init__(self, data, gen, perturb=None):
         self.data = copy.deepcopy(data)
         self.digest = None
         self.times = []
 
         self.wins   = 0
         self.losses = 0
+
+        self.generation = gen
         
         # make our data interesting
-        self.perturb(self.data, perturb)
-        self.update_hash()
+        if perturb is not None:
+            self.perturb(self.data, perturb)
+            self.update_hash()
 
     def perturb(self, d, perturb):
         for k in d:
@@ -42,6 +45,12 @@ class Solution(object):
                 json.dump(self.data, fp)
         return f
 
+    @property
+    def fitness(self):
+        if self.wins + self.losses == 0:
+            return 0
+        else:
+            return self.wins / (self.wins+self.losses)
 
     def get_command(self):
         return "python2 ../bot.py --no-log --use-eval --config {0}".format(self.get_config_file())
