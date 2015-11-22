@@ -33,12 +33,10 @@ def play_poker(solution1, solution2):
 
     # the last to the third line yields the winner (player1/player2)
     if output[-4][-1] == "1":
-        solution1.wins += 1
-        solution2.losses += 1
+        solution1.handle_win(solution2)
         return solution1
     else:
-        solution2.wins += 1
-        solution1.losses += 1
+        solution2.handle_win(solution1)
         return solution2
 
 class FitnessEvaluator(object):

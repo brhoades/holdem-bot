@@ -155,5 +155,5 @@ class Generation(object):
         with open(filename,'w') as f:
             f.write("Gen\tFit\tWins\tLosses\tTime\n")
             for s in solutions:
-                f.write("{0}\t{1}\t{2}\t{3}\t{4}\n    {5}\n".format(s.generation, round(s.fitness,2), s.wins, s.losses, \
+                f.write("{0}\t{1}\t{2}\t{3}\t{4}\n    {5}\n".format(s.generation, round(s.fitness), s.wins, s.losses, \
                     round(s.average_time,2), s.get_config_file()))

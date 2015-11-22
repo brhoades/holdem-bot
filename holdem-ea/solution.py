@@ -13,6 +13,7 @@ class Solution(object):
         self.wins   = 0
         self.losses = 0
 
+        self.elo    = 1000
         self.generation = gen
         
         # make our data interesting
@@ -74,15 +75,32 @@ class Solution(object):
 
     @property
     def fitness(self):
-        if self.losses == 0 and self.wins > 0:
-            return self.wins
-        elif self.losses == 0:
-            return 0
-        return float(self.wins) / self.losses
+        return self.elo
+    
+    @property
+    def adjusted_fitness(self):
+        return 10**(float(self.elo)/400)
 
     @property
     def average_time(self):
         if len(self.times) == 0:
             return 1000
         return sum(self.times)/len(self.times)
+
+    def handle_win(self, other):
+        self.wins += 1
+        other.losses += 1
+
+        print("")
+        e1 = self.adjusted_fitness / (self.adjusted_fitness + other.adjusted_fitness)
+        e2 = other.adjusted_fitness / (other.adjusted_fitness + self.adjusted_fitness)
+
+        print("Me: {0}\tThem: {1}\nE1: {2}\tE2: {3}\n".format(self.elo, other.elo, e1, e2))
+        print("I win")
+
+        self.elo += 32 * (1 - e1)
+        other.elo += 32 * (0 - e2)
+
+        print("After:\tMe: {0}\tThem: {1}\n".format(self.elo, other.elo))
+        print("After:\tMef: {0}\tThemf: {1}\n".format(self.fitness, other.fitness))
 
