@@ -91,16 +91,8 @@ class Solution(object):
         self.wins += 1
         other.losses += 1
 
-        print("")
         e1 = self.adjusted_fitness / (self.adjusted_fitness + other.adjusted_fitness)
         e2 = other.adjusted_fitness / (other.adjusted_fitness + self.adjusted_fitness)
 
-        print("Me: {0}\tThem: {1}\nE1: {2}\tE2: {3}\n".format(self.elo, other.elo, e1, e2))
-        print("I win")
-
         self.elo += 32 * (1 - e1)
         other.elo += 32 * (0 - e2)
-
-        print("After:\tMe: {0}\tThem: {1}\n".format(self.elo, other.elo))
-        print("After:\tMef: {0}\tThemf: {1}\n".format(self.fitness, other.fitness))
-

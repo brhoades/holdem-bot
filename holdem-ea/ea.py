@@ -39,10 +39,9 @@ class EA(object):
             avgtime /= len(self.this_generation.population)
             avggen /= len(self.this_generation.population)
 
-            print("\nType\tFit\tTime\tGen")
+            print("\nType\tTime\tFit\tGen")
             print("Avg\t{0}\t{1}\t{2}".format(round(avgtime,2),round(avgfitness,2),round(avggen,2)))
-            print("Best\t{0}\t{1}\t{2}\t{3}/{4}".format(round(best.fitness,2),
-                round(best.average_time,2),round(best.generation,2),best.wins,best.losses))
+            print("Best\t{0}\t{1}\t{2}\t{3}/{4}".format(round(best.average_time,2),round(best.fitness,2),round(best.generation,2),best.wins,best.losses))
 
             self.output_top()
 

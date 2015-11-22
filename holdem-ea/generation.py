@@ -107,15 +107,21 @@ class Generation(object):
         """
         Determine who to kill off. Currently done by tournament selection.
         """
+        newpop = []
+
+        # top 3 ELO, if not winners, will not be eliminated
+        count = 0
+        self.population = sorted(self.population, key=lambda p: p.fitness)
+        for i in range(3):
+            newpop.append(self.population.pop()) 
+            count += 1
+
         # another tournament
         results = self.tournament(self.tournament_rounds)
 
-        # new population
-        self.population = []
-
-        # top 3 will not be eliminated
+        # first 3 winners will not be eliminated
         for x in results[:2]:
-            self.population.extend(x)
+            newpop.extend(x)
 
         results = results[2:]
 
@@ -124,11 +130,12 @@ class Generation(object):
             l = sorted(l, key=lambda p: p.fitness, reverse=True)
 
         # now randomly pop elements off
-        while len(self.population) < self.lamb:
+        while len(newpop) < self.lamb:
             l = random.sample(results,1)[0]
-            self.population.append(l.pop())
+            newpop.append(l.pop())
             if len(l) == 0:
                 results.remove(l)
+        self.population = newpop
         
     def every_ten_tournament(self):
         """
