@@ -26,6 +26,33 @@ class Solution(object):
                 d[k] *= random.random() * perturb
             if isinstance(d[k], dict):
                 self.perturb(d[k], perturb)
+
+    def mutate(self, d=None):
+        if d is None:
+            d = self.data
+        for k in d:
+            if isinstance(d[k], int) or isinstance(d[k], float):
+                i = random.randint(0,9)
+                if i <= 2:
+                    # can be completely transformed
+                    d[k] *= random.random()
+                # or sign flipped
+                elif i == 3:
+                    d[k] *= -1
+                elif i == 4:
+                    # or increased
+                    d[k] += random.random()
+                elif i == 5:
+                    # or decreased
+                    d[k] -= random.random()
+                #otherwise we leave it alone.
+                # that works out to 10% (default rate) of children
+                # wading through nuclear waste and 1 in 2 of their attributes
+                # being changed
+
+            if isinstance(d[k], dict):
+                self.mutate(d[k])
+
     def update_hash(self, data=None):
         m = md5.new()
         if data is None:

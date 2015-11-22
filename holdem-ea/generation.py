@@ -19,6 +19,7 @@ class Generation(object):
         self.number = 1
 
         self.tournamentrounds = 3
+        self.mutation_rate = 0.1
 
     def random(self, sourcefile, perturb):
         starting_data = json.load(sourcefile)
@@ -53,11 +54,12 @@ class Generation(object):
                 parents.append(random.sample(level,1)[0])
             children.append(copulate(self.number, *parents))
         
-        self.mutate(children)
+        for child in children:
+            if random.random() <= self.mutation_rate:
+                child.mutate()
 
-    def mutate(self, children):
-        pass
-
+        #plus strategy
+        self.population += children
 
     def tournament(self):
         """
