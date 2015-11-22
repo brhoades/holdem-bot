@@ -213,7 +213,6 @@ class AI(GameInfoTracker):
                 scoresum += self.ev.hand_size_map[length](table_adjusted+p)
                 num += 1
             scoresum /= num
-            print("NUM: " + str(num))
 
         # change deck into specialkards
         table_adjusted = [x.card_number for x in self.table.hand]
