@@ -13,6 +13,7 @@ class EA(object):
 
     def run(self):
         for i in range(0,self.runs):
+            print("\n\n=====\nGENERATION:{0}\n====".format(self.this_generation.number))
             # this modifies the generation and adds babies
             self.this_generation.reproduce()
             self.this_generation.natural_selection()

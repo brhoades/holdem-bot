@@ -86,7 +86,6 @@ class Generation(object):
 
             # if we have an odd individual, they compete against a random winner
             if len(participants) % 2 != 0:
-                print("SPECIAL CONTESTANT")
                 opponent = random.sample(winners, 1)[0]
                 winner = self.fiteval.run([(opponent,participants[-1],self.tournamentrounds,)],get_winner)
                 if winner is not opponent: # they get to be included... no risk to winner
@@ -116,7 +115,7 @@ class Generation(object):
 
         # sort our levels
         for l in results:
-            sorted(l, key=lambda p: p.fitness)
+            l = sorted(l, key=lambda p: p.fitness, reverse=True)
 
         # now randomly pop elements off
         while len(self.population) < self.lamb:

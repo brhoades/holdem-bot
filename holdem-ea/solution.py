@@ -77,7 +77,7 @@ class Solution(object):
         if self.wins + self.losses == 0:
             return 0
         else:
-            return self.wins / (self.wins+self.losses)
+            return float(self.wins) / (self.wins+self.losses)
 
     def get_command(self):
         return "python2 ../bot.py --no-log --use-eval --config {0}".format(self.get_config_file())
