@@ -127,6 +127,13 @@ class AI(GameInfoTracker):
             ours = self.get_score()
             
 
+        # check call amount
+        if amount >= self.stack:
+            # this strategy is annoying... so check if our hand is "good enough"
+            if ours > self.config["max_stack_bet_threshold"]:
+                return "call 0"
+            return "fold 0"
+
         #self.log.debug("")
         #self.log.debug("STAGE: " + stage)
         #self.log.debug("")

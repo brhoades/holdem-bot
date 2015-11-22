@@ -18,7 +18,7 @@ package:
 	rm ../holdem-bot.zip
 	rm -rfv *log __pycache__
 	find . -iname "*.pyc" -exec rm -vf {} \;
-	zip -r -9 ../holdem-bot.zip *
+	zip -x"score/SpecialKEval/*" -x"score/*.cpp" -x "holdem-ea/*" -r -9 ../holdem-bot.zip *
 
 test_real:
 	rm -f *log

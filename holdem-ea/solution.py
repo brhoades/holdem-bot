@@ -78,7 +78,7 @@ class Solution(object):
     @property
     def fitness(self):
         if self.losses == 0 and self.wins > 0:
-            return 100
+            return self.wins
         elif self.losses == 0:
             return 0
         return float(self.wins) / self.losses
