@@ -14,11 +14,11 @@ update:
 score: $(wildcard score/*.cpp)
 	make -C score
 
-package: 
+package: score
 	rm ../holdem-bot.zip
 	rm -rfv *log __pycache__
 	find . -iname "*.pyc" -exec rm -vf {} \;
-	zip -r -9 ../holdem-bot.zip *
+	zip -r -9 -x"score/*" ../holdem-bot.zip *
 
 test_real:
 	rm -f *log
@@ -28,13 +28,13 @@ test_real:
 
 test: test_ea
 
-test_ea:
+test_ea: score
 	rm -f *log
 	java -cp ../texasholdem-engine/bin com.theaigames.game.texasHoldem.TexasHoldem \
 		"python2 bot.py --log --config config_1.json --use-eval" \
 		"python2 bot.py --log --config config_2.json --use-eval"
 
-profile:
+profile: score
 	-@ echo "Cleaning up" 
 	-@ rm -f *log &> /dev/null
 	-@ rm -f /tmp/profile_data_config_1.pyprof &> /dev/null

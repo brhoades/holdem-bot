@@ -2,6 +2,7 @@
 #include "SpecialKEval/src/SevenEval.h"
 #include <cstdlib>
 #include <Python.h>
+#include <algorithm>
 
 using namespace std;
 
@@ -29,15 +30,23 @@ PyMODINIT_FUNC initspecialeval(void)
 
 static inline PyObject* specialeval_get_score(PyObject* self, PyObject* args)
 {
-  short cards[MAX_CARDS_IN] = {-1};
+  short cards[MAX_CARDS_IN];
   short numCards = 7;
+
+  fill_n(cards, MAX_CARDS_IN, -1);
+
   if(PyArg_ParseTuple(args, "iiiii|ii", &cards[0], &cards[1], &cards[2], 
      &cards[3], &cards[4], &cards[5], &cards[6]))
   {
-    for(short i=5; i<MAX_CARDS_IN; i++)
+    for(short i=0; i<MAX_CARDS_IN; i++)
     {
-      if(cards[i] == -1)
+      if(cards[i] <= 0)
+      {
         numCards = i; 
+        break;
+      }
+      else
+        cards[i]--; // python offsets them by one so we can see the end of our arguments easier
     }
   }
   else
@@ -50,7 +59,7 @@ static inline PyObject* specialeval_get_score(PyObject* self, PyObject* args)
   static const SevenEval eval7;
     
 
-  if(numCards == 6)
+  if(numCards == 5)
   {
     // get hand score possibilities for them and sum them
     for(short i=0; i<NUM_CARDS_IN_DECK-numCards; i++)
@@ -61,8 +70,9 @@ static inline PyObject* specialeval_get_score(PyObject* self, PyObject* args)
         count++;
       }
     }
+    fprintf(stderr,"EVAL: 5 cards\n");
   }
-  else if(numCards == 7)
+  else if(numCards == 6)
   {
     // this isn't officially supported... emulate it by guessing the final card too
     for(short i=0; i<NUM_CARDS_IN_DECK-numCards; i++)
@@ -77,6 +87,7 @@ static inline PyObject* specialeval_get_score(PyObject* self, PyObject* args)
         }
       }
     }
+    fprintf(stderr,"EVAL: 6 cards\n");
   }
   else
   {
@@ -90,7 +101,10 @@ static inline PyObject* specialeval_get_score(PyObject* self, PyObject* args)
         count++;
       }
     }
+    fprintf(stderr,"EVAL: 7 cards\n");
   }
+
+  fprintf(stderr,"Count %i\n", count);
 
   delete[] deck;
   return Py_BuildValue("i", MAX_SCORE - (sum / count));

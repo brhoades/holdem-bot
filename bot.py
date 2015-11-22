@@ -79,7 +79,7 @@ class AI(GameInfoTracker):
 
                 parts = line.split()
                 command = parts[0].lower()
-                #self.log.debug('INCOMING:\t %s' % (line))
+                self.log.debug('INCOMING:\t %s' % (line))
 
                 if command == 'settings' or command == 'match':
                     self.update_settings(parts[1], parts[2])
@@ -89,9 +89,9 @@ class AI(GameInfoTracker):
                     pass
                 elif command == 'action':
                     totalsize = len(self.table.hand) + len(self.player.hand)
-                    #self.log.debug("ACTION: totalsize={0}".format(totalsize))
-                    #self.log.debug('  Table: ' + self.table.getHumanHand())
-                    #self.log.debug('  Us: ' + self.player.getHumanHand())
+                    self.log.debug("ACTION: totalsize={0}".format(totalsize))
+                    self.log.debug('  Table: ' + self.table.getHumanHand())
+                    self.log.debug('  Us: ' + self.player.getHumanHand())
 
                     back = None
                     if totalsize == 2: 
@@ -103,9 +103,9 @@ class AI(GameInfoTracker):
                     elif totalsize == 7:
                         back = self.turn(parts[2], "river") + '\n'
                     else:
-                        #self.log.debug('Unknown stage!')
+                        self.log.debug('Unknown stage!')
                         pass
-                    #self.log.debug('OUT: ' + str(back) + '\n')
+                    self.log.debug('OUT: ' + str(back) + '\n')
                     stdout.write(back)
                     stdout.flush()
                 else:
@@ -198,16 +198,17 @@ class AI(GameInfoTracker):
                 scoresum += self.ev.hand_size_map[length](table_adjusted+p)
                 num += 1
             scoresum /= num
-        else:
-            # change deck into specialkards
-            table_adjusted = [x.card_number for x in self.table.hand]
-            hand_adjusted  = [x.card_number for x in self.player.hand]
+            print("NUM: " + str(num))
 
-            # average hand for them
-            scoresum = get_score(*(table_adjusted+hand_adjusted))
+        # change deck into specialkards
+        table_adjusted = [x.card_number for x in self.table.hand]
+        hand_adjusted  = [x.card_number for x in self.player.hand]
 
-        #self.log.debug("Calculated scoreaverage: " + str(scoresum))
-        #self.log.debug("Our score: " + str(base_score))
+        # average hand for them
+        self.log.debug("Our eval score: " + str(get_score(*(table_adjusted+hand_adjusted))))
+
+        self.log.debug("Calculated scoreaverage: " + str(scoresum))
+        self.log.debug("Our score: " + str(base_score))
 
         self.last_hand_score = scoresum - base_score
 

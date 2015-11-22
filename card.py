@@ -6,8 +6,8 @@ class Card(object):
 
         suits  = "shdc"
         numbers = "AKQJT98765432"
-        self.card_number = suits.find(card_string[1]) + numbers.find(card_string[0])*4
-        # specialKEval ^
+        self.card_number = suits.find(card_string[1]) + numbers.find(card_string[0])*4+1
+        # specialKEval ^ offset by one
 
         self.number = numbers[::-1].find(card_string[0])+2
         self.suit = card_string[1]
