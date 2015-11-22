@@ -16,6 +16,9 @@ class GameInfoTracker(object):
         self.table = None
         self.deck = Deck()
 
+        self.minimum_raise = 20
+        self.default_raise_amount = 20
+
         self.last_hand_count = 0
         self.last_hand_score = 0
 
@@ -27,6 +30,7 @@ class GameInfoTracker(object):
         if key == 'table':
             self.table.parseHand(value)
             self.deck.remove_cards(self.table.hand)
+            self.minimum_raise = self.default_raise_amount
         elif key == 'amountToCall':
             self.amount_to_call = int(value)
         else:
@@ -76,6 +80,8 @@ class GameInfoTracker(object):
             elif info_type == 'wins':
                 pass
                 #self.log.debug("THEY WIN!")
+            elif info_type == 'raise':
+                self.minimum_raise = int(info_value)
             else:
                 pass
                 #stderr.write('Unknown info_type: %s\n' % (info_type))

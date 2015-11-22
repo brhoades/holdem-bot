@@ -144,7 +144,6 @@ class AI(GameInfoTracker):
             if self.player.hand[0].number == self.player.hand[1].number or\
                 (self.player.hand[0].suit == self.player.hand[1].suit and \
                 self.player.hand[0].number > 10 and self.player.hand[1].number > 10):
-                action = "raise"
                 amount = stagec["raise_multiplier"] * self.player.stack
                 return self.raise_amount(amount, stage)
             elif amount >= stagec["fold_amount_threshold"]:
@@ -178,6 +177,12 @@ class AI(GameInfoTracker):
             amount = self.player.stack * self.config["confidence"]
 
         if self.amount_to_call >= amount:
+            return "call 0"
+
+        amount -= self.spentPerStage[stage]
+
+        if amount < self.minimum_raise:
+            #self.log.debug("Amount to raise is below minimum")
             return "call 0"
 
         self.spentPerStage[stage] += amount
