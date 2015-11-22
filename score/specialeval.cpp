@@ -70,7 +70,6 @@ static inline PyObject* specialeval_get_score(PyObject* self, PyObject* args)
         count++;
       }
     }
-    fprintf(stderr,"EVAL: 5 cards\n");
   }
   else if(numCards == 6)
   {
@@ -87,7 +86,6 @@ static inline PyObject* specialeval_get_score(PyObject* self, PyObject* args)
         }
       }
     }
-    fprintf(stderr,"EVAL: 6 cards\n");
   }
   else
   {
@@ -101,10 +99,7 @@ static inline PyObject* specialeval_get_score(PyObject* self, PyObject* args)
         count++;
       }
     }
-    fprintf(stderr,"EVAL: 7 cards\n");
   }
-
-  fprintf(stderr,"Count %i\n", count);
 
   delete[] deck;
   return Py_BuildValue("i", MAX_SCORE - (sum / count));
