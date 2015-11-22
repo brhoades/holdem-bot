@@ -1,23 +1,28 @@
 {
   "logfile": "botnum1.log",
   "confidence": 0.5,
+  "max_stack_bet_threshold": 1000,
   "pre_flop": {
     "fold_threshold": -1000000,
+    "fold_amount_threshold": 100,
     "raise_threshold": 2000,
     "raise_multiplier": 0.05
   },
   "flop": {
     "fold_threshold": -2000,
+    "fold_amount_threshold": 200,
     "raise_threshold": 1500,
     "raise_multiplier": 0.25
   },
   "turn": {
     "fold_threshold": -1500,
+    "fold_amount_threshold": 300,
     "raise_threshold": 750,
     "raise_multiplier": 0.45
   },
   "river": {
     "fold_threshold": -1500,
+    "fold_amount_threshold": 500,
     "raise_threshold": 500,
     "raise_multiplier": 0.65
   }

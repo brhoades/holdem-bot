@@ -1,5 +1,6 @@
 import random
 from solution import Solution
+from awesome_print import ap
 
 def copulate(gen, parent1, parent2):
     """
@@ -18,13 +19,12 @@ def copulate_recursive(childd, parent2d):
     """
     Recursively combines/shares data dict values
     """
-    for k1,k2 in zip(childd,parent2d):
-        if isinstance(childd[k1], int) or isinstance(childd[k1], float):
+    for k in childd:
+        if isinstance(childd[k], int) or isinstance(childd[k], float):
             if random.randint(0,1):
-                childd[k1] = (childd[k1] + parent2d[k2]) / 2
+                childd[k] = (childd[k] + parent2d[k]) / 2
             else:
                 if random.randint(0,1): # if 1, we change to parent 2... keep otherwise
-                    childd[k1] = parent2d[k2]
-        if isinstance(childd[k1], dict):
-            copulate_recursive(childd[k1], parent2d[k2])
-
+                    childd[k] = parent2d[k]
+        if isinstance(childd[k], dict):
+            copulate_recursive(childd[k], parent2d[k])
