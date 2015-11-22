@@ -128,7 +128,7 @@ class AI(GameInfoTracker):
             
 
         # check call amount
-        if amount >= self.stack:
+        if amount >= self.player.stack:
             # this strategy is annoying... so check if our hand is "good enough"
             if ours > self.config["max_stack_bet_threshold"]:
                 return "call 0"
@@ -147,7 +147,15 @@ class AI(GameInfoTracker):
                 action = "raise"
                 amount = stagec["raise_multiplier"] * self.player.stack
                 return self.raise_amount(amount, stage)
+            elif amount >= stagec["fold_amount_threshold"]:
+                return "fold 0"
             return '{0} {1}'.format(action, amount)
+
+        # check if call amount is higher than what we could possibly have
+        if amount >= stagec["fold_amount_threshold"] and stagec["raise_threshold"] \
+                / ours * stagec["raise_multiplier"] * self.config["confidence"] > amount:
+            return "fold 0"
+
 
         if ours >= stagec["raise_threshold"]:
             action = "raise"
