@@ -17,6 +17,10 @@ class EA(object):
             # this modifies the generation and adds babies
             self.this_generation.reproduce()
             self.this_generation.natural_selection()
+
+            if self.this_generation.number % 10 == 0:
+                self.this_generation.every_ten_tournament()
+
             self.this_generation.number += 1
             
             avgtime = 0
@@ -44,12 +48,8 @@ class EA(object):
 
     def output_top(self):
         num = 10
-        with open('topten.txt','w') as f:
-            f.write("\nType\tFit\tTime\tGen\n")
-            for s in sorted(self.this_generation.population, key=lambda p: p.fitness, reverse=True):
-                num -= 1
-                f.write("{0}\t{1}\t{2}\t{3}\t{4}\n    {5}\n".format(s.generation, s.fitness, s.wins, s.losses, \
-                    s.average_time, s.get_config_file()))
+        sols = []
 
-                if num < 0:
-                    return
+        for s in sorted(self.this_generation.population, key=lambda p: p.fitness, reverse=True):
+            sols.append(s)
+        self.this_generation.output_solutions_to_file(sols,"top10.txt")
