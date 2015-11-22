@@ -23,11 +23,13 @@ def play_poker(solution1, solution2):
     p = "java -cp ../../texasholdem-engine/bin com.theaigames.game.texasHoldem.TexasHoldem \"{0}\" \"{1}\"".format(solution1.get_command(),solution2.get_command())
 
     start = time.time()
-    output = Popen([p], shell=True, stdout=subprocess.PIPE).communicate()[0].split('\n')
+    try:
+        output = Popen([p], shell=True, stdout=subprocess.PIPE).communicate()[0].split('\n')
+    except KeyboardInterrupt:
+        return
     t = time.time() - start
     solution1.times.append(t)
     solution2.times.append(t)
-    #print ".",
 
     # the last to the third line yields the winner (player1/player2)
     if output[-4][-1] == "1":
@@ -52,9 +54,15 @@ class FitnessEvaluator(object):
         self.pool = mp.Pool(processes=self.size)
 
         results = []
-        for i in range(len(args)):
-            results.append(self.pool.apply_async(fitnessfunc, args[i]))
-        self.pool.close()
-        self.pool.join()
+        try:
+            for i in range(len(args)):
+                results.append(self.pool.apply_async(fitnessfunc, args[i]))
+            self.pool.close()
+            self.pool.join()
+        except KeyboardInterrupt:
+            self.pool.terminate()
+            self.pool.join()
+            raise e
+
         # spawn another one so we're ready
         return [x.get() for x in results]
