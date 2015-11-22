@@ -55,6 +55,7 @@ static inline PyObject* specialeval_get_score(PyObject* self, PyObject* args)
   short* deck = createDeck(cards, numCards); 
   unsigned short count=0;
   unsigned int sum=0;
+  unsigned int ours=0;
   static const FiveEval eval5;
   static const SevenEval eval7;
     
@@ -70,9 +71,12 @@ static inline PyObject* specialeval_get_score(PyObject* self, PyObject* args)
         count++;
       }
     }
+
+    ours = eval5.GetRank(cards[0], cards[1], cards[2], cards[3], cards[4]);
   }
   else if(numCards == 6)
   {
+    unsigned int oursnum = 0;
     // this isn't officially supported... emulate it by guessing the final card too
     for(short i=0; i<NUM_CARDS_IN_DECK-numCards; i++)
     {
@@ -84,8 +88,12 @@ static inline PyObject* specialeval_get_score(PyObject* self, PyObject* args)
               deck[i], deck[j], deck[k]);
           count++;
         }
+        ours += eval7.GetRank(cards[0], cards[1], cards[2], cards[3], cards[4], deck[i], deck[j]);
+        oursnum++;
       }
     }
+
+    ours /= oursnum;
   }
   else
   {
@@ -99,10 +107,13 @@ static inline PyObject* specialeval_get_score(PyObject* self, PyObject* args)
         count++;
       }
     }
+
+      ours = eval7.GetRank(cards[0], cards[1], cards[2], cards[3], cards[4], 
+          cards[5], cards[6]);
   }
 
   delete[] deck;
-  return Py_BuildValue("i", MAX_SCORE - (sum / count));
+  return Py_BuildValue("i",  sum/count - ours + 1);
 }
 
 inline short* createDeck(short* cards, const short numCards)

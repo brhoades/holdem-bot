@@ -193,11 +193,12 @@ class AI(GameInfoTracker):
             return self.last_hand_score
         else:
             self.last_hand_count = len(self.table.hand) + len(self.player.hand)
-
-        base_score = self.ev.evaluate(self.table.getHand(), self.player.getHand())
-        score_sum  = 0
+        
+        score = 0
 
         if not self.use_eval:
+            base_score = self.ev.evaluate(self.table.getHand(), self.player.getHand())
+            score_sum  = 0
             table_adjusted = tuple(self.table.getHand())
 
             # change deck into deuces cards
@@ -212,23 +213,21 @@ class AI(GameInfoTracker):
             for p in possibilities:
                 scoresum += self.ev.hand_size_map[length](table_adjusted+p)
                 num += 1
-            scoresum /= num
+            score = scoresum/num
         else:
             # change deck into specialkards
             table_adjusted = [x.card_number for x in self.table.hand]
             hand_adjusted  = [x.card_number for x in self.player.hand]
 
-            scoresum = get_score(*(table_adjusted+hand_adjusted))
+            score = get_score(*(table_adjusted+hand_adjusted))
 
+        #self.log.debug("Builtin score: " + str(biscore))
+        #self.log.debug("Eval score: " + str(score))
         #self.log.debug("Calculated scoreaverage: " + str(scoresum))
         #self.log.debug("Our score: " + str(base_score))
 
-        #self.last_hand_score = scoresum - base_score
-
-        if base_score is not None:
-            return scoresum - base_score
-        else:
-            return None
+        self.last_hand_score = score
+        return score
 
 if __name__ == '__main__':
     '''
