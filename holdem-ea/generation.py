@@ -1,4 +1,5 @@
 from solution import Solution
+from awesome_print import ap
 import random
 import json
 from fitness import get_winner, FitnessEvaluator
@@ -38,10 +39,6 @@ class Generation(object):
         """
         ranked = self.tournament()
         children = []
-        # sort our levels
-        for l in ranked:
-            l = sorted(l, key=lambda p: p.fitness, reverse=True)
-
         for i in range(self.mu):
             parents = []
             for i in range(2):
@@ -74,7 +71,7 @@ class Generation(object):
         winners = []
 
         while len(participants) > 1:
-            print("PARTS: " + str(len(participants)))
+            print "\nPARTS " + str(len(participants)) + ": ",
             random.shuffle(participants)
             args = []
             # pair individuals
@@ -99,10 +96,33 @@ class Generation(object):
             
             participants = winners
 
-        losers.append(participants)
+        losers.append(winners)
         losers.reverse()
         return losers
 
 
     def natural_selection(self):
-        pass
+        # another tournament
+        results = self.tournament()
+
+        # new population
+        self.population = []
+
+        # top 3 will not be eliminated
+        for x in results[:2]:
+            self.population.extend(x)
+
+        results = results[2:]
+
+        # sort our levels
+        for l in results:
+            sorted(l, key=lambda p: p.fitness)
+
+        # now randomly pop elements off
+        while len(self.population) < self.lamb:
+            l = random.sample(results,1)[0]
+            self.population.append(l.pop())
+            if len(l) == 0:
+                results.remove(l)
+        
+
