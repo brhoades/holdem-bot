@@ -213,13 +213,12 @@ class AI(GameInfoTracker):
                 scoresum += self.ev.hand_size_map[length](table_adjusted+p)
                 num += 1
             scoresum /= num
+        else:
+            # change deck into specialkards
+            table_adjusted = [x.card_number for x in self.table.hand]
+            hand_adjusted  = [x.card_number for x in self.player.hand]
 
-        # change deck into specialkards
-        table_adjusted = [x.card_number for x in self.table.hand]
-        hand_adjusted  = [x.card_number for x in self.player.hand]
-
-        # average hand for them
-        #self.log.debug("Our eval score: " + str(get_score(*(table_adjusted+hand_adjusted))))
+            scoresum = get_score(*(table_adjusted+hand_adjusted))
 
         #self.log.debug("Calculated scoreaverage: " + str(scoresum))
         #self.log.debug("Our score: " + str(base_score))
