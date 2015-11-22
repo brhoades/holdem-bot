@@ -27,7 +27,7 @@ def play_poker(solution1, solution2):
     t = time.time() - start
     solution1.times.append(t)
     solution2.times.append(t)
-    print ".",
+    #print ".",
 
     # the last to the third line yields the winner (player1/player2)
     if output[-4][-1] == "1":
@@ -35,7 +35,6 @@ def play_poker(solution1, solution2):
         solution2.losses += 1
         return solution1
     else:
-        solution1.wins += 1
         solution2.wins += 1
         solution1.losses += 1
         return solution2

@@ -71,7 +71,7 @@ class Generation(object):
         winners = []
 
         while len(participants) > 1:
-            print "\nPARTS " + str(len(participants)) + ": ",
+            #print "\nPARTS " + str(len(participants)) + ": ",
             random.shuffle(participants)
             args = []
             # pair individuals

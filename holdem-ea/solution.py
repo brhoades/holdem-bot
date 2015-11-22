@@ -72,12 +72,20 @@ class Solution(object):
                 json.dump(self.data, fp)
         return f
 
-    @property
-    def fitness(self):
-        if self.wins + self.losses == 0:
-            return 0
-        else:
-            return float(self.wins) / (self.wins+self.losses)
-
     def get_command(self):
         return "python2 ../bot.py --no-log --use-eval --config {0}".format(self.get_config_file())
+
+    @property
+    def fitness(self):
+        if self.losses == 0 and self.wins > 0:
+            return 1000000
+        elif self.losses == 0:
+            return 0
+        return float(self.wins) / self.losses
+
+    @property
+    def average_time(self):
+        if len(self.times) == 0:
+            return 1000
+        return sum(self.times)/len(self.times)
+
