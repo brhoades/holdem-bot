@@ -8,7 +8,7 @@ class EA(object):
         self.runs = turns 
 
         # create an initial generation
-        self.this_generation = Generation(mu)
+        self.this_generation = Generation(lamb, mu)
         self.this_generation.random(sourcefile, perturb)
 
     def run(self):

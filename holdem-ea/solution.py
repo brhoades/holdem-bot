@@ -8,6 +8,10 @@ class Solution(object):
     def __init__(self, data, perturb):
         self.data = copy.deepcopy(data)
         self.digest = None
+        self.times = []
+
+        self.wins   = 0
+        self.losses = 0
         
         # make our data interesting
         self.perturb(self.data, perturb)
