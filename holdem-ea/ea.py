@@ -1,4 +1,7 @@
 from generation import Generation
+import os
+import logging
+import logging.handlers
 
 class EA(object):
     def __init__(self, lamb, mu, turns, perturb, sourcefile):
@@ -7,13 +10,25 @@ class EA(object):
 
         self.runs = turns 
 
+        LOG_FILENAME = os.path.abspath("./results/ealog.txt")
+
+        # Set up a specific logger with our desired output level
+        self.log = logging.getLogger('MyLogger')
+        self.log.setLevel(logging.DEBUG)
+
+        self.handler = logging.handlers.RotatingFileHandler(
+                LOG_FILENAME, backupCount=5)
+
+        self.log.addHandler(self.handler)
+
         # create an initial generation
-        self.this_generation = Generation(lamb, mu)
+        self.this_generation = Generation(lamb, mu, self.log)
         self.this_generation.random(sourcefile, perturb)
 
     def run(self):
         for i in range(0,self.runs):
             print("\n\n=====\nGENERATION: {0}\n====".format(self.this_generation.number))
+            self.log.debug("\n\n=====\nGENERATION: {0}\n====".format(self.this_generation.number))
             # this modifies the generation and adds babies
             self.this_generation.reproduce()
             self.this_generation.natural_selection()

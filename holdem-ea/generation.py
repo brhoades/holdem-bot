@@ -12,13 +12,14 @@ class Generation(object):
     """
     A generation houses a collection of solutions.
     """
-    def __init__(self, size, mu):
+    def __init__(self, size, mu, log):
         self.population = []
         self.size = size
         self.lamb = size
         self.mu   = mu
         self.fiteval = FitnessEvaluator(10)
         self.number = 1
+        self.log = log
 
         self.results_folder = "./results"
 
@@ -41,7 +42,7 @@ class Generation(object):
         determined by a tournament. The best always get a chance.
         """
         ranked = self.tournament(self.tournament_rounds)
-        ap(ranked)
+        self.log.debug(ranked)
         children = []
         for i in range(self.mu):
             parents = []
@@ -74,9 +75,9 @@ class Generation(object):
         winners = []
 
         while len(participants) > 1:
-            print "\nPARTS " + str(len(participants)) + ": ",
+            self.log.debug("\nPARTS " + str(len(participants)) + ": ")
             random.shuffle(participants)
-            ap(participants)
+            self.log.debug(participants)
             args = []
             winners = []
 
@@ -108,8 +109,8 @@ class Generation(object):
                 else:
                     losers[-1].append(participants[-1])
             
-            print("losers:")
-            ap(losers)
+            self.log.debug("losers:")
+            self.log.debug(losers)
             participants = winners
 
         losers.append(winners)
@@ -130,7 +131,7 @@ class Generation(object):
         for x in results[:2]:
             newpop.extend(x)
             for s in x:
-                print(s.get_config_file())
+                self.log.debug(s.get_config_file())
                 if s in self.population: #this shouldn't be necessary
                     self.population.remove(s)
 
@@ -158,7 +159,7 @@ class Generation(object):
         Every 10 generations we have a tournament. It's best out of 7
         and the top 7 are output to results/every10/tournament_gen#.txt
         """
-        print("\nDetermining Top 7\n")
+        self.log.debug("\nDetermining Top 7\n")
         ranked = self.tournament(7)
         winners = []
         for x in ranked[:3]:
