@@ -1,5 +1,5 @@
 from solution import Solution
-from awesome_print import ap
+import pprint
 from fitness import get_winner, FitnessEvaluator
 from copy import copy
 from numpy.random import choice
@@ -17,7 +17,7 @@ class Generation(object):
         self.size = size
         self.lamb = size
         self.mu   = mu
-        self.fiteval = FitnessEvaluator(10)
+        self.fiteval = FitnessEvaluator(5)
         self.number = 1
         self.log = log
 
@@ -42,8 +42,11 @@ class Generation(object):
         determined by a tournament. The best always get a chance.
         """
         ranked = self.tournament(self.tournament_rounds)
-        self.log.debug(ranked)
+        self.log.debug(pprint.pformat(ranked))
         children = []
+        for l in ranked:
+            if len(l) == 0:
+                ranked.remove(l)
         for i in range(self.mu):
             parents = []
             for i in range(2):
@@ -77,7 +80,7 @@ class Generation(object):
         while len(participants) > 1:
             self.log.debug("\nPARTS " + str(len(participants)) + ": ")
             random.shuffle(participants)
-            self.log.debug(participants)
+            self.log.debug(pprint.pformat(participants))
             args = []
             winners = []
 
@@ -90,12 +93,7 @@ class Generation(object):
             # get results, add to losers
             results = self.fiteval.run(args, get_winner)
             for x,a in zip(results, args):
-                if x == 1:
-                    winners.append(a[0])
-                else:
-                    winners.append(a[1])
-
-            losers.append([x for x in participants if x not in winners])
+                winners.append(self.handle_winners(x,a))
 
             # if we have an odd individual, they compete against a random winner
             if len(participants) % 2 != 0:
@@ -103,19 +101,41 @@ class Generation(object):
                 #winner = self.fiteval.run([(opponent,participants[-1],rounds,)],get_winner)
                 # do this on thread. It's just one, and the overhead of creating processes
                 # is longer than the function
-                winner = get_winner(opponent, participants[-1], rounds)
-                if winner == 2: # they get to be included... no risk to winner
+                args = (opponent, participants[-1], rounds,)
+                winner = get_winner(*args)
+                winner = self.handle_winners(winner, args)
+                if winner is not opponent: # they get to be included... no risk to winner
                     winners.append(participants[-1])
-                else:
-                    losers[-1].append(participants[-1])
             
+            losers.append([x for x in participants if x not in winners])
+
             self.log.debug("losers:")
-            self.log.debug(losers)
+            self.log.debug(pprint.pformat(losers))
             participants = winners
 
         losers.append(winners)
         losers.reverse()
         return losers
+
+    def handle_winners(self, results, participants):
+        """
+        Have to handle these on thread.
+        We're passed a packed results list... 1 for participants[0] winning, 2 for participants[1]
+        and we tally up how that affects each.
+        """
+        for i in results:
+            if i == 1:
+                participants[0].handle_win(participants[1])
+                participants[0].wins += 1
+                participants[1].losses += 1
+            else:
+                participants[1].handle_win(participants[0])
+                participants[1].wins += 1
+                participants[0].losses += 1
+        if results.count(1) > results.count(2):
+            return participants[0]
+        else:
+            return participants[1]
 
 
     def natural_selection(self):
@@ -123,9 +143,12 @@ class Generation(object):
         Determine who to kill off. Currently done by tournament selection.
         """
         newpop = []
+        self.log.debug("NATURAL SELECTION")
 
         # another tournament
         results = self.tournament(self.tournament_rounds)
+        self.log.debug("RESULTS: ")
+        self.log.debug(pprint.pformat(results))
 
         # first 2 winners will not be eliminated
         for x in results[:2]:
@@ -135,6 +158,8 @@ class Generation(object):
                 if s in self.population: #this shouldn't be necessary
                     self.population.remove(s)
 
+        self.log.debug("POP: ")
+        self.log.debug(pprint.pformat(self.population))
         self.population = sorted(self.population, key=lambda p: p.fitness, reverse=True)
         # top 3 ELO, if not winners, will not be eliminated
         for i in range(3):

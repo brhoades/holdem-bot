@@ -11,9 +11,7 @@ def get_winner(solution1, solution2, rounds):
     for i in range(rounds):
         winners.append(play_poker(solution1, solution2))
 
-    if winners.count(1) > rounds/2:
-        return 1
-    return 2
+    return winners
 
 
 def play_poker(solution1, solution2):
@@ -33,10 +31,8 @@ def play_poker(solution1, solution2):
 
     # the last to the third line yields the winner (player1/player2)
     if output[-4][-1] == "1":
-        solution1.handle_win(solution2)
         return 1
     else:
-        solution2.handle_win(solution1)
         return 2
 
 class FitnessEvaluator(object):

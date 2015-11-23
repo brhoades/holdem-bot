@@ -34,15 +34,18 @@ class Solution(object):
         for k in d:
             if isinstance(d[k], int) or isinstance(d[k], float):
                 i = random.randint(0,9)
-                if i <= 3:
+                if i < 2:
                     # can be completely transformed
                     d[k] *= random.random()
+                elif i < 4:
+                    # or increased
+                    d[k] /= random.random()
                 elif i == 4:
+                    # or decreased directly
+                    d[k] -= random.random()
+                else:
                     # or increased
                     d[k] += random.random()
-                elif i == 5:
-                    # or decreased
-                    d[k] -= random.random()
                 #otherwise we leave it alone.
                 # that works out to 10% (default rate) of children
                 # wading through nuclear waste and 1 in 2 of their attributes
