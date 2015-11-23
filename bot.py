@@ -17,8 +17,6 @@ from gameinfotracker import GameInfoTracker
 import itertools
 import cProfile
 
-from score.specialeval import get_score
-
 class AI(GameInfoTracker):
     '''
     Main bot class
@@ -37,7 +35,6 @@ class AI(GameInfoTracker):
             self.config = json.loads(args.config_data)
         LOG_FILENAME = self.config["logfile"]
 
-        self.use_eval = args.use_eval
         self.eval_path = [os.path.join(os.path.dirname(os.path.realpath(__file__)), "score", "eval")]
 
         super(AI, self).__init__()
@@ -134,10 +131,10 @@ class AI(GameInfoTracker):
                 return "call 0"
             return "fold 0"
 
-        #self.log.debug("")
-        #self.log.debug("STAGE: " + stage)
-        #self.log.debug("")
-        #self.log.debug("Our score: " + str(ours))
+        self.log.debug("")
+        self.log.debug("STAGE: " + stage)
+        self.log.debug("")
+        self.log.debug("Our score: " + str(ours))
 
         if stage == "pre_flop":
             # if we have a high pair or a high matching suit, raise
@@ -198,35 +195,28 @@ class AI(GameInfoTracker):
         
         score = 0
 
-        if not self.use_eval:
-            base_score = self.ev.evaluate(self.table.getHand(), self.player.getHand())
-            score_sum  = 0
-            table_adjusted = tuple(self.table.getHand())
+        base_score = self.ev.evaluate(self.table.getHand(), self.player.getHand())
+        table_adjusted = tuple(self.table.getHand())
 
-            # change deck into deuces cards
-            deck_adjusted = (dCard.new(x) for x in self.deck.cards)
+        # change deck into deuces cards
+        deck_adjusted = (dCard.new(x) for x in self.deck.cards)
 
-            # all possbile hands
-            possibilities = itertools.combinations(deck_adjusted, 2)
+        # all possbile hands
+        possibilities = itertools.combinations(deck_adjusted, 2)
 
-            length = len(self.table.hand) + len(self.player.hand)
-            scoresum = 0
-            num = 0
-            for p in possibilities:
-                scoresum += self.ev.hand_size_map[length](table_adjusted+p)
-                num += 1
-            score = scoresum/num
-        else:
-            # change deck into specialkards
-            table_adjusted = [x.card_number for x in self.table.hand]
-            hand_adjusted  = [x.card_number for x in self.player.hand]
-
-            score = get_score(*(table_adjusted+hand_adjusted))
+        length = len(self.table.hand) + len(self.player.hand)
+        scoresum = 0
+        num = 0
+        for p in possibilities:
+            scoresum += self.ev.hand_size_map[length](table_adjusted+p)
+            num += 1
+        # get our score adjusted for what they could have
+        self.log.debug("Base score: " + str(base_score))
+        score = base_score - scoresum/num
 
         #self.log.debug("Builtin score: " + str(biscore))
-        #self.log.debug("Eval score: " + str(score))
         #self.log.debug("Calculated scoreaverage: " + str(scoresum))
-        #self.log.debug("Our score: " + str(base_score))
+        self.log.debug("Score: " + str(score))
 
         self.last_hand_score = score
         return score
@@ -243,7 +233,6 @@ if __name__ == '__main__':
     parser.add_argument('--config-data', default=None)
     parser.add_argument('--log', default=False, action='store_true')
     parser.add_argument('--no-log', default=False, action='store_true')
-    parser.add_argument('--use-eval', default=False, action='store_true')
     args = parser.parse_args()
 
     b = AI(args)

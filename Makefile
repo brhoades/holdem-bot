@@ -31,8 +31,8 @@ test: test_ea
 test_ea: score
 	rm -f *log
 	java -cp ../texasholdem-engine/bin com.theaigames.game.texasHoldem.TexasHoldem \
-		"python2 bot.py --log --config config_1.json --use-eval" \
-		"python2 bot.py --log --config config_2.json --use-eval"
+		"python2 bot.py --log --config config_1.json " \
+		"python2 bot.py --log --config config_2.json"
 
 profile: score
 	-@ echo "Cleaning up" 
