@@ -24,7 +24,8 @@ class Solution(object):
     def perturb(self, d, perturb):
         for k in d:
             if isinstance(d[k], int) or isinstance(d[k], float):
-                d[k] *= random.random() * perturb
+                if random.random() > 0.25: # only change 1/4 of the attributes
+                    d[k] *= random.random() * perturb
             if isinstance(d[k], dict):
                 self.perturb(d[k], perturb)
 
@@ -74,7 +75,8 @@ class Solution(object):
         return f
 
     def get_command(self):
-        return "python2 ../bot.py --use-eval --config {0}".format(self.get_config_file())
+        return "python2 ../bot.py --config {0}".format(self.get_config_file())
+        #return "python2 ../bot.py --use-eval --config {0}".format(self.get_config_file())
 
     @property
     def fitness(self):

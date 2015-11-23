@@ -151,15 +151,12 @@ class AI(GameInfoTracker):
             return '{0} {1}'.format(action, amount)
 
         # check if call amount is higher than what we could possibly have
-        if amount >= stagec["fold_amount_threshold"] and ours != 0 and stagec["raise_threshold"] \
-                / ours * stagec["raise_multiplier"] * self.config["confidence"] > amount:
+        if amount >= stagec["fold_amount_threshold"] or (ours != 0 and stagec["raise_threshold"] \
+                / ours * stagec["raise_multiplier"] * self.config["confidence"] > amount):
             return "fold 0"
 
-
         if ours >= stagec["raise_threshold"]:
-            action = "raise"
-            amount = stagec["raise_threshold"] / ours * stagec["raise_multiplier"] \
-                * self.player.stack
+            amount = stagec["raise_threshold"] / ours * stagec["raise_multiplier"]
             return self.raise_amount(amount, stage)
 
         if ours < stagec['fold_threshold']:

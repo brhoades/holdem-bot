@@ -24,7 +24,7 @@ class Generation(object):
         self.results_folder = "./results"
 
         self.tournament_rounds = 3
-        self.mutation_rate = 0.1
+        self.mutation_rate = 0.15
 
     def random(self, sourcefile, perturb):
         starting_data = json.load(sourcefile)
@@ -42,7 +42,7 @@ class Generation(object):
         determined by a tournament. The best always get a chance.
         """
         ranked = self.tournament(self.tournament_rounds)
-        self.log.debug(pprint.pformat(ranked))
+        #self.log.debug(pprint.pformat(ranked))
         children = []
         for l in ranked:
             if len(l) == 0:
@@ -80,7 +80,7 @@ class Generation(object):
         while len(participants) > 1:
             self.log.debug("\nPARTS " + str(len(participants)) + ": ")
             random.shuffle(participants)
-            self.log.debug(pprint.pformat(participants))
+            #self.log.debug(pprint.pformat(participants))
             args = []
             winners = []
 
@@ -110,7 +110,7 @@ class Generation(object):
             losers.append([x for x in participants if x not in winners])
 
             self.log.debug("losers:")
-            self.log.debug(pprint.pformat(losers))
+            #self.log.debug(pprint.pformat(losers))
             participants = winners
 
         losers.append(winners)
@@ -148,18 +148,18 @@ class Generation(object):
         # another tournament
         results = self.tournament(self.tournament_rounds)
         self.log.debug("RESULTS: ")
-        self.log.debug(pprint.pformat(results))
+        #self.log.debug(pprint.pformat(results))
 
         # first 2 winners will not be eliminated
         for x in results[:2]:
             newpop.extend(x)
             for s in x:
-                self.log.debug(s.get_config_file())
+                #self.log.debug(s.get_config_file())
                 if s in self.population: #this shouldn't be necessary
                     self.population.remove(s)
 
-        self.log.debug("POP: ")
-        self.log.debug(pprint.pformat(self.population))
+        #self.log.debug("POP: ")
+        #self.log.debug(pprint.pformat(self.population))
         self.population = sorted(self.population, key=lambda p: p.fitness, reverse=True)
         # top 3 ELO, if not winners, will not be eliminated
         for i in range(3):
