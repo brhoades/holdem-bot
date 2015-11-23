@@ -41,6 +41,7 @@ class Generation(object):
         determined by a tournament. The best always get a chance.
         """
         ranked = self.tournament(self.tournament_rounds)
+        ap(ranked)
         children = []
         for i in range(self.mu):
             parents = []
@@ -68,15 +69,17 @@ class Generation(object):
         This list returned is 2d. Starting with the best, each list contains 2*last
         entries for where contestants were eliminated.
         """
-        args = []
         participants = copy(self.population)
         losers = []
         winners = []
 
         while len(participants) > 1:
-            #print "\nPARTS " + str(len(participants)) + ": ",
+            print "\nPARTS " + str(len(participants)) + ": ",
             random.shuffle(participants)
+            ap(participants)
             args = []
+            winners = []
+
             # pair individuals
             for i in range(0, len(participants), 2):
                 if i + 1 >= len(participants):
@@ -84,18 +87,29 @@ class Generation(object):
                 args.append((participants[i], participants[i+1], rounds,))
 
             # get results, add to losers
-            winners = self.fiteval.run(args, get_winner)
+            results = self.fiteval.run(args, get_winner)
+            for x,a in zip(results, args):
+                if x == 1:
+                    winners.append(a[0])
+                else:
+                    winners.append(a[1])
+
             losers.append([x for x in participants if x not in winners])
 
             # if we have an odd individual, they compete against a random winner
             if len(participants) % 2 != 0:
                 opponent = random.sample(winners, 1)[0]
-                winner = self.fiteval.run([(opponent,participants[-1],rounds,)],get_winner)
-                if winner is not opponent: # they get to be included... no risk to winner
-                    winners.extend(winner)
+                #winner = self.fiteval.run([(opponent,participants[-1],rounds,)],get_winner)
+                # do this on thread. It's just one, and the overhead of creating processes
+                # is longer than the function
+                winner = get_winner(opponent, participants[-1], rounds)
+                if winner == 2: # they get to be included... no risk to winner
+                    winners.append(participants[-1])
                 else:
                     losers[-1].append(participants[-1])
             
+            print("losers:")
+            ap(losers)
             participants = winners
 
         losers.append(winners)
@@ -109,19 +123,21 @@ class Generation(object):
         """
         newpop = []
 
-        # top 3 ELO, if not winners, will not be eliminated
-        count = 0
-        self.population = sorted(self.population, key=lambda p: p.fitness)
-        for i in range(3):
-            newpop.append(self.population.pop()) 
-            count += 1
-
         # another tournament
         results = self.tournament(self.tournament_rounds)
 
-        # first 3 winners will not be eliminated
+        # first 2 winners will not be eliminated
         for x in results[:2]:
             newpop.extend(x)
+            for s in x:
+                print(s.get_config_file())
+                if s in self.population: #this shouldn't be necessary
+                    self.population.remove(s)
+
+        self.population = sorted(self.population, key=lambda p: p.fitness, reverse=True)
+        # top 3 ELO, if not winners, will not be eliminated
+        for i in range(3):
+            newpop.append(self.population.pop()) 
 
         results = results[2:]
 
