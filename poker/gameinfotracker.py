@@ -35,7 +35,7 @@ class GameInfoTracker(object):
             self.amount_to_call = int(value)
         else:
             if key == 'round':
-                #self.log.debug("NEW ROUND: " + value)
+                self.log.debug("NEW ROUND: ".format(value))
                 self.new_match()
             self.settings[key] = value
 
@@ -57,12 +57,14 @@ class GameInfoTracker(object):
                 self.player.parseHand(info_value)
                 self.deck.remove_cards(self.player.hand)
             elif info_type == 'win':
-                pass
-                #self.log.debug("I WIN!")
+                self.log.debug("")
+                self.log.debug("")
+                self.log.debug("I WIN")
+                self.log.debug("")
+                self.log.debug("")
             else:
-                pass
-                #stderr.write('Unknown info_type: %s\n' % (info_type))
-                #self.log.debug('Unknown info_type: %s\n' % (info_type))
+                stderr.write('Unknown info_type: %s\n' % (info_type))
+                self.log.debug('Unknown info_type: %s\n' % (info_type))
         else:
 
             # Update opponent stack
@@ -78,14 +80,15 @@ class GameInfoTracker(object):
                 self.other_player.parseHand(info_value)
                 self.deck.remove_cards(self.other_player.hand)
             elif info_type == 'wins':
-                pass
-                #self.log.debug("THEY WIN!")
+                self.log.debug("")
+                self.log.debug("THEY WIN")
+                self.log.debug("")
             elif info_type == 'raise':
                 self.minimum_raise = int(info_value)
             else:
                 pass
-                #stderr.write('Unknown info_type: %s\n' % (info_type))
-                #self.log.debug('Unknown info_type: %s\n' % (info_type))
+                stderr.write('Unknown info_type: %s\n' % (info_type))
+                self.log.debug('Unknown info_type: %s\n' % (info_type))
 
     def new_match(self):
         for k in self.spentPerStage:

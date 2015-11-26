@@ -141,8 +141,8 @@ class AI(GameInfoTracker):
         if stage == "pre_flop":
             # if we have a high pair or a high matching suit, raise
             if self.player.hand[0].number == self.player.hand[1].number or\
-                (self.player.hand[0].suit == self.player.hand[1].suit and \
-                self.player.hand[0].number > 10 and self.player.hand[1].number > 10):
+                self.player.hand[0].suit == self.player.hand[1].suit and \
+                (self.player.hand[0].number > 10 and self.player.hand[1].number > 10):
                 amount = stagec["raise_multiplier"] * self.player.stack
                 return self.raise_amount(amount, stage)
             elif amount >= stagec["fold_amount_threshold"]:
@@ -150,25 +150,27 @@ class AI(GameInfoTracker):
             return '{0} {1}'.format(action, amount)
 
         # check if call amount is higher than what we could possibly have
-        if amount >= stagec["fold_amount_threshold"] or (ours != 0 and stagec["raise_threshold"] \
-                / ours * stagec["raise_multiplier"] * self.config["confidence"] > amount):
+        if ours * self.config["confidence"] >= stagec["fold_threshold"]  \
+            or self.get_raise(ours, stagec) < self.amount_to_call:
             return "fold 0"
 
         if ours >= stagec["raise_threshold"]:
-            amount = stagec["raise_threshold"] / ours * stagec["raise_multiplier"]
-            return self.raise_amount(amount, stage)
+            return self.raise_amount(self.get_raise(ours, stagec), stage)
 
         if ours < stagec['fold_threshold']:
             action = "fold"
 
-
         self.spentPerStage[stage] += amount
         return '{0} {1}'.format(action, amount)
 
+    def get_raise(self, ours, stage_config):
+        ours += stage_config['score_offset']
+        if ours < 1:
+            return 0
+        return(stage_config["raise_threshold"] \
+            / ours * stage_config["raise_multiplier"] * self.config["confidence"])
+
     def raise_amount(self, amount, stage):
-        #self.log.debug("RAISE: " + str(amount))
-        # the raise amount is what the bot "thinks" we should be calling.
-        
         if amount > self.player.stack * self.config["confidence"]:
             amount = self.player.stack * self.config["confidence"]
 
@@ -178,7 +180,7 @@ class AI(GameInfoTracker):
         amount -= self.spentPerStage[stage]
 
         if amount < self.minimum_raise:
-            #self.log.debug("Amount to raise is below minimum")
+            self.log.debug("Amount to raise ({0}) is below minimum".format(amount))
             return "call 0"
 
         self.spentPerStage[stage] += amount
@@ -222,6 +224,7 @@ class AI(GameInfoTracker):
         self.log.debug("  Score:      {0}".format(score))
 
         return score
+
 
 if __name__ == '__main__':
     '''
