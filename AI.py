@@ -123,7 +123,7 @@ class AI(GameInfoTracker):
         stagec = self.config[stage]
         amount = self.amount_to_call
         if len(self.table.hand) > 0:
-            ours = self.get_score()
+            ours = self.get_score(stagec)
             
 
         # check call amount
@@ -150,7 +150,7 @@ class AI(GameInfoTracker):
             return '{0} {1}'.format(action, amount)
 
         # check if call amount is higher than what we could possibly have
-        if ours * self.config["confidence"] >= stagec["fold_threshold"]  \
+        if ours >= stagec["fold_threshold"]  \
             or self.get_raise(ours, stagec) < self.amount_to_call:
             return "fold 0"
 
@@ -164,15 +164,14 @@ class AI(GameInfoTracker):
         return '{0} {1}'.format(action, amount)
 
     def get_raise(self, ours, stage_config):
-        ours += stage_config['score_offset']
         if ours < 1:
             return 0
         return(stage_config["raise_threshold"] \
-            / ours * stage_config["raise_multiplier"] * self.config["confidence"])
+            / ours * stage_config["raise_multiplier"])
 
     def raise_amount(self, amount, stage):
-        if amount > self.player.stack * self.config["confidence"]:
-            amount = self.player.stack * self.config["confidence"]
+        if amount > self.player.stack:
+            amount = self.player.stack
 
         if self.amount_to_call >= amount:
             return "call 0"
@@ -186,7 +185,7 @@ class AI(GameInfoTracker):
         self.spentPerStage[stage] += amount
         return '{0} {1}'.format("raise", amount)
     
-    def get_score(self):
+    def get_score(self, stagec):
         """
         Returns a score that adjusts for their average hand.
         return > 0: our hand is better on average by #
@@ -216,12 +215,22 @@ class AI(GameInfoTracker):
             num += 1
         scoresum /= float(num)
         # get our score adjusted for what they could have
-        self.log.debug("  Base score:    {0}".format(base_score))
-        self.log.debug("  Score average: {0}".format(scoresum))
+        self.log.debug("  Base score:     {0}".format(base_score))
+        self.log.debug("  Score average:  {0}".format(scoresum))
+        self.log.debug("  Relative Score: {0}".format(base_score - scoresum))
+        self.log.debug("  Confidence:     {0}".format(self.config["confidence"]))
 
-        score = base_score - scoresum
+        score = (base_score + stagec["score_offset"])
+        self.log.debug("  Offset Score:   {0}".format(score))
+
+        if score < 0:
+            score /= self.config["confidence"]
+        else:
+            score *= self.config["confidence"]
+        score -= scoresum 
+
         self.last_hand_score = score
-        self.log.debug("  Score:      {0}".format(score))
+        self.log.debug("  Score:          {0}".format(score))
 
         return score
 
