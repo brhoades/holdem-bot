@@ -44,7 +44,7 @@ class Solution(object):
                 elif i == 4:
                     # or decreased directly
                     d[k] -= random.random()
-                else:
+                elif i == 5:
                     # or increased
                     d[k] += random.random()
                 #otherwise we leave it alone.

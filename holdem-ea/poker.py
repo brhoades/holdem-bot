@@ -21,10 +21,7 @@ def copulate_recursive(childd, parent2d):
     """
     for k in childd:
         if isinstance(childd[k], int) or isinstance(childd[k], float):
-            if random.randint(0,1):
-                childd[k] = (childd[k] + parent2d[k]) / 2
-            else:
-                if random.randint(0,1): # if 1, we change to parent 2... keep otherwise
-                    childd[k] = parent2d[k]
+            if random.randint(0,1) == 1: # if 1, we change to parent 2... keep otherwise
+                childd[k] = parent2d[k]
         if isinstance(childd[k], dict):
             copulate_recursive(childd[k], parent2d[k])
