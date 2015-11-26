@@ -23,24 +23,24 @@ package: score
 test_real:
 	rm -f *log
 	java -cp ../texasholdem-engine/bin com.theaigames.game.texasHoldem.TexasHoldem \
-		"python2 bot.py --log --config config_1.json" \
-		"python2 bot.py --log --config config_2.json"
+		"python2 AI.py --log --config config_1.json" \
+		"python2 AI.py --log --config config_2.json"
 
 test: test_ea
 
 test_ea: score
 	rm -f *log
 	java -cp ../texasholdem-engine/bin com.theaigames.game.texasHoldem.TexasHoldem \
-		"python2 bot.py --log --config config_1.json " \
-		"python2 bot.py --log --config config_2.json"
+		"python2 AI.py --log --config config_1.json " \
+		"python2 AI.py --log --config config_2.json"
 
 profile: score
 	-@ echo "Cleaning up" 
 	-@ rm -f *log &> /dev/null
 	-@ rm -f /tmp/profile_data_config_1.pyprof &> /dev/null
 	-@ echo "Profiling..."
-	-@ python2 -m cProfile -o /tmp/profile_data_config_1.pyprof bot.py \
-		--config config_1.json --no-log --use-eval < profile_input/bot_input_p1.txt &> /dev/null
+	-@ python2 -m cProfile -o /tmp/profile_data_config_1.pyprof AI.py \
+		--config config_1.json --no-log < profile_input/bot_input_p1.txt &> /dev/null
 	@echo "Creating SVG"
 	-@ pyprof2calltree2 -i /tmp/profile_data_config_1.pyprof -o /tmp/profile_data_config_1.callgrind
 	gprof2dot  --format=callgrind --output=/tmp/out.dot /tmp/profile_data_config_1.callgrind
@@ -53,5 +53,5 @@ profile: score
 	-@ echo $(URL) | xsel -c -i &> /dev/null
 
 #java -cp ../texasholdem-engine/bin com.theaigames.game.texasHoldem.TexasHoldem \
-#	"python2 -m cProfile -o /tmp/profile_data_config_1.pyprof bot.py --config config_1.json --use-eval" \
-#	"python2 -m cProfile -o /tmp/profile_data_config_2.pyprof bot.py --config config_2.json --use-eval" 
+#	"python2 -m cProfile -o /tmp/profile_data_config_1.pyprof AI.py --config config_1.json" \
+#	"python2 -m cProfile -o /tmp/profile_data_config_2.pyprof AI.py --config config_2.json" 

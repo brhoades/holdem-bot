@@ -10,12 +10,13 @@ import os
 import logging
 import logging.handlers
 from deuces.deuces import Card as dCard, Evaluator
-from card import Card
 import argparse
 import json
-from gameinfotracker import GameInfoTracker
 import itertools
 import cProfile
+
+from poker.card import Card
+from poker.gameinfotracker import GameInfoTracker
 
 class AI(GameInfoTracker):
     '''
@@ -76,7 +77,7 @@ class AI(GameInfoTracker):
 
                 parts = line.split()
                 command = parts[0].lower()
-                #self.log.debug('INCOMING:\t %s' % (line))
+                self.log.debug("INCOMING:\t {0}".format(line))
 
                 if command == 'settings' or command == 'match':
                     self.update_settings(parts[1], parts[2])
@@ -86,9 +87,10 @@ class AI(GameInfoTracker):
                     pass
                 elif command == 'action':
                     totalsize = len(self.table.hand) + len(self.player.hand)
-                    #self.log.debug("ACTION: totalsize={0}".format(totalsize))
-                    #self.log.debug('  Table: ' + self.table.getHumanHand())
-                    #self.log.debug('  Us: ' + self.player.getHumanHand())
+                    self.log.debug("ACTION: totalsize={0}".format(totalsize))
+                    if self.log: # converting this to pretty hands is expensive enough to catch
+                        self.log.debug("  Table: {0}".format(self.table.getHumanHand()))
+                        self.log.debug("  Us:    {0}".format(self.player.getHumanHand()))
 
                     back = None
                     if totalsize == 2: 
@@ -102,12 +104,12 @@ class AI(GameInfoTracker):
                     else:
                         #self.log.debug('Unknown stage!')
                         pass
-                    #self.log.debug('OUT: ' + str(back) + '\n')
+                    self.log.debug("OUT: {0}\n".format(back))
                     stdout.write(back)
                     stdout.flush()
                 else:
-                    stderr.write('Unknown command: %s\n' % (command))
-                    #self.log.debug('ERR: Unknown command: %s\n' % (command))
+                    stderr.write("Unknown command: %s\n".format(command))
+                    self.log.debug("ERR: Unknown command: %s\n".format(command))
                     stderr.flush()
             except EOFError:
                 return
@@ -132,9 +134,9 @@ class AI(GameInfoTracker):
             return "fold 0"
 
         self.log.debug("")
-        self.log.debug("STAGE: " + stage)
         self.log.debug("")
-        self.log.debug("Our score: " + str(ours))
+        self.log.debug("STAGE: " + stage)
+        self.log.debug("    Our score: " + str(ours))
 
         if stage == "pre_flop":
             # if we have a high pair or a high matching suit, raise
@@ -210,15 +212,15 @@ class AI(GameInfoTracker):
         for p in possibilities:
             scoresum += self.ev.hand_size_map[length](table_adjusted+p)
             num += 1
+        scoresum /= float(num)
         # get our score adjusted for what they could have
-        self.log.debug("Base score: " + str(base_score))
-        score = base_score - scoresum/num
+        self.log.debug("  Base score:    {0}".format(base_score))
+        self.log.debug("  Score average: {0}".format(scoresum))
 
-        #self.log.debug("Builtin score: " + str(biscore))
-        #self.log.debug("Calculated scoreaverage: " + str(scoresum))
-        self.log.debug("Score: " + str(score))
-
+        score = base_score - scoresum
         self.last_hand_score = score
+        self.log.debug("  Score:      {0}".format(score))
+
         return score
 
 if __name__ == '__main__':
