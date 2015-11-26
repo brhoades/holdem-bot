@@ -58,10 +58,9 @@ class GameInfoTracker(object):
                 self.deck.remove_cards(self.player.hand)
             elif info_type == 'win':
                 self.log.debug("")
-                self.log.debug("")
                 self.log.debug("I WIN")
                 self.log.debug("")
-                self.log.debug("")
+                self.config["confidence"] -= float(self.config["confidence_win_modifier"])
             else:
                 stderr.write('Unknown info_type: %s\n' % (info_type))
                 self.log.debug('Unknown info_type: %s\n' % (info_type))
@@ -83,6 +82,7 @@ class GameInfoTracker(object):
                 self.log.debug("")
                 self.log.debug("THEY WIN")
                 self.log.debug("")
+                self.config["confidence"] += float(self.config["confidence_loss_modifier"])
             elif info_type == 'raise':
                 self.minimum_raise = int(info_value)
             else:
