@@ -75,7 +75,7 @@ class Solution(object):
         return f
 
     def get_command(self):
-        return "python2 ../bot.py --config {0}".format(self.get_config_file())
+        return "python2 ../AI.py --config {0}".format(self.get_config_file())
         #return "python2 ../bot.py --use-eval --config {0}".format(self.get_config_file())
 
     @property
