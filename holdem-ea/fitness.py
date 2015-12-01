@@ -23,7 +23,7 @@ def play_poker(solution1, solution2):
     """
     Call our tournament and get the results (return winner).
     """
-    p = "java -cp ../../texasholdem-engine/bin com.theaigames.game.texasHoldem.TexasHoldem \"{0}\" \"{1}\"".format(solution1.get_command(),solution2.get_command())
+    p = "java -Xms512M -Xmx512M -cp ../../texasholdem-engine/bin com.theaigames.game.texasHoldem.TexasHoldem \"{0}\" \"{1}\"".format(solution1.get_command(),solution2.get_command())
 
     start = time.time()
     try:
