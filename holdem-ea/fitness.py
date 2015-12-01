@@ -3,10 +3,15 @@ import re
 import subprocess
 import time
 import multiprocessing as mp
-def get_winner(solution1, solution2, rounds):
+#def get_winner(solution1, solution2, rounds):
+def get_winner(args):
     """
     Compete in rounds rounds, the one who wins the most is returned.
+    Args are packed for 2.7 compatibility with map_async (3.3+ has starmap)
     """
+    solution1 = args[0]
+    solution2 = args[1]
+    rounds = args[2]
     winners = []
     for i in range(rounds):
         winners.append(play_poker(solution1, solution2))
@@ -45,18 +50,21 @@ class FitnessEvaluator(object):
         self.size = size
     
     def run(self, args, fitnessfunc):
-        self.pool = mp.Pool(processes=self.size)
+        if len(args) >= self.size:
+            self.pool = mp.Pool(processes=self.size)
+            results = []
 
-        results = []
-        try:
-            for i in range(len(args)):
-                results.append(self.pool.apply_async(fitnessfunc, args[i]))
-            self.pool.close()
-            self.pool.join()
-        except KeyboardInterrupt:
-            self.pool.terminate()
-            self.pool.join()
-            raise e
+            try:
+                r = self.pool.map_async(fitnessfunc, args, callback=results.extend)
+                r = r.get()
+                self.pool.close()
+                self.pool.join()
+            except KeyboardInterrupt:
+                self.pool.terminate()
+                self.pool.join()
+                raise e
 
-        # spawn another one so we're ready
-        return [x.get() for x in results]
+            return results
+        else:
+            # If we've got less work than threads, run on thread
+            return [fitnessfunc(arg) for arg in args]

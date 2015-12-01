@@ -23,7 +23,7 @@ class Generation(object):
 
         self.results_folder = "./results"
 
-        self.tournament_rounds = 3
+        self.tournament_rounds = 1
         self.mutation_rate = 0.15
 
     def random(self, sourcefile, perturb):
@@ -41,6 +41,7 @@ class Generation(object):
         Create mu children, add them into our generation. Those who reproduce are 
         determined by a tournament. The best always get a chance.
         """
+        self.log.debug("REPRODUCTION")
         ranked = self.tournament(self.tournament_rounds)
         #self.log.debug(pprint.pformat(ranked))
         children = []
@@ -98,12 +99,10 @@ class Generation(object):
             # if we have an odd individual, they compete against a random winner
             if len(participants) % 2 != 0:
                 opponent = random.sample(winners, 1)[0]
-                #winner = self.fiteval.run([(opponent,participants[-1],rounds,)],get_winner)
-                # do this on thread. It's just one, and the overhead of creating processes
-                # is longer than the function
-                args = (opponent, participants[-1], rounds,)
-                winner = get_winner(*args)
-                winner = self.handle_winners(winner, args)
+                args = [(opponent,participants[-1],rounds,)]
+                result = self.fiteval.run(args, get_winner)
+                winner = self.handle_winners(result[0], args[0])
+
                 if winner is not opponent: # they get to be included... no risk to winner
                     winners.append(participants[-1])
             
