@@ -27,15 +27,16 @@ def play_poker(solution1, solution2):
 
     start = time.time()
     try:
-        output = Popen([p], shell=True, stdout=subprocess.PIPE).communicate()[0].split('\n')
+        out, err = Popen([p], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
     except KeyboardInterrupt:
         return
+    #FIXME: if err, determine which err'd?
     t = time.time() - start
     solution1.times.append(t)
     solution2.times.append(t)
 
     # the last to the third line yields the winner (player1/player2)
-    if output[-4][-1] == "1":
+    if out.split('\n')[-4][-1] == "1":
         return 1
     else:
         return 2
