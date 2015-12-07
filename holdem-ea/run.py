@@ -7,7 +7,7 @@ parser.add_argument('--config', type=argparse.FileType('r', 0), default=os.path.
 
 args = parser.parse_args()
 
-ea = EA(128, 64, 100, 5, args.config)
+ea = EA(128, 64, 100, 10, args.config)
 #ea = EA(16, 8, 6, 10, args.config)
 ea.run()
 

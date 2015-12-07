@@ -7,6 +7,7 @@ from poker import copulate
 import os
 import random
 import json
+import sys
 
 class Generation(object):
     """
@@ -17,14 +18,14 @@ class Generation(object):
         self.size = size
         self.lamb = size
         self.mu   = mu
-        self.fiteval = FitnessEvaluator(5)
+        self.fiteval = FitnessEvaluator(8)
         self.number = 1
         self.log = log
 
         self.results_folder = "./results"
 
-        self.tournament_rounds = 1
-        self.mutation_rate = 0.15
+        self.tournament_rounds = 3
+        self.mutation_rate = 0.20
 
     def random(self, sourcefile, perturb):
         starting_data = json.load(sourcefile)
@@ -82,6 +83,7 @@ class Generation(object):
             self.log.debug("\nPARTS " + str(len(participants)) + ": ")
             random.shuffle(participants)
             #self.log.debug(pprint.pformat(participants))
+            self.output_statistics()
             args = []
             winners = []
 
@@ -108,7 +110,7 @@ class Generation(object):
             
             losers.append([x for x in participants if x not in winners])
 
-            self.log.debug("losers:")
+            #self.log.debug("losers:")
             #self.log.debug(pprint.pformat(losers))
             participants = winners
 
@@ -205,3 +207,28 @@ class Generation(object):
             for s in solutions:
                 f.write("{0}\t{1}\t{2}\t{3}\t{4}\n    {5}\n".format(s.generation, round(s.fitness), s.wins, s.losses, \
                     round(s.average_time,2), s.get_config_file()))
+
+    
+    def output_statistics(self):
+        avgtime = 0
+        avgfitness = 0
+        avggen = 0
+        best = None
+        for s in self.population:
+            if len(s.times) > 0:
+                avgtime += s.average_time
+            avgfitness += s.fitness
+            if best is None or s.fitness > best.fitness:
+                best = s
+            avggen += s.generation
+
+        avgfitness /= len(self.population)
+        avgtime /= len(self.population)
+        avggen /= len(self.population)
+
+        print("\nType\tTime\tFit\tGen\tPop/W:L")
+        print("Avg\t{0}\t{1}\t{2}\t{3}".format(round(avgtime,2),round(avgfitness,2),round(avggen,2), len(self.population)))
+        print("Best\t{0}\t{1}\t{2}\t{3}/{4}".format(round(best.average_time,2),round(best.fitness,2),round(best.generation,2),best.wins,best.losses))
+
+        # Go up 3 lines
+        sys.stdout.write("\033[K\033[K\033[K")

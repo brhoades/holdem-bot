@@ -88,7 +88,7 @@ class Solution(object):
     @property
     def average_time(self):
         if len(self.times) == 0:
-            return 1000
+            return 0
         return sum(self.times)/len(self.times)
 
     def handle_win(self, other):

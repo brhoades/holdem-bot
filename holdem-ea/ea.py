@@ -36,29 +36,8 @@ class EA(object):
             if self.this_generation.number % 10 == 0:
                 self.this_generation.every_ten_tournament()
 
+            self.this_generation.output_statistics()
             self.this_generation.number += 1
-            
-            avgtime = 0
-            avgfitness = 0
-            avggen = 0
-            best = None
-            for s in self.this_generation.population:
-                if len(s.times) > 0:
-                    avgtime += s.average_time
-                avgfitness += s.fitness
-                if best is None or s.fitness > best.fitness:
-                    best = s
-                avggen += s.generation
-
-            avgfitness /= len(self.this_generation.population)
-            avgtime /= len(self.this_generation.population)
-            avggen /= len(self.this_generation.population)
-
-            print("Population size: " + str(len(self.this_generation.population)))
-
-            print("\nType\tTime\tFit\tGen")
-            print("Avg\t{0}\t{1}\t{2}".format(round(avgtime,2),round(avgfitness,2),round(avggen,2)))
-            print("Best\t{0}\t{1}\t{2}\t{3}/{4}".format(round(best.average_time,2),round(best.fitness,2),round(best.generation,2),best.wins,best.losses))
 
             self.output_top()
 

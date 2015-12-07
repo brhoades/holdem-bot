@@ -56,7 +56,7 @@ class GameInfoTracker(object):
             elif info_type == 'hand':
                 self.player.parseHand(info_value)
                 self.deck.remove_cards(self.player.hand)
-            elif info_type == 'win':
+            elif info_type == 'wins':
                 self.log.debug("")
                 self.log.debug("I WIN")
                 self.log.debug("")
